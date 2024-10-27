@@ -1,0 +1,186 @@
+# Reading E:/intelFPGA/17.0/modelsim_ase/tcl/vsim/pref.tcl
+# do ECE550Project_run_msim_rtl_verilog.do
+# if {[file exists rtl_work]} {
+# 	vdel -lib rtl_work -all
+# }
+# vlib rtl_work
+# vmap work rtl_work
+# Model Technology ModelSim - Intel FPGA Edition vmap 10.5b Lib Mapping Utility 2016.10 Oct  5 2016
+# vmap work rtl_work 
+# Copying E:/intelFPGA/17.0/modelsim_ase/win32aloem/../modelsim.ini to modelsim.ini
+# Modifying modelsim.ini
+# 
+# vlog -vlog01compat -work work +incdir+E:/Ass/ECE550/Project {E:/Ass/ECE550/Project/skeleton.v}
+# Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+# Start time: 17:59:18 on Oct 26,2024
+# vlog -reportprogress 300 -vlog01compat -work work "+incdir+E:/Ass/ECE550/Project" E:/Ass/ECE550/Project/skeleton.v 
+# -- Compiling module skeleton
+# 
+# Top level modules:
+# 	skeleton
+# End time: 17:59:18 on Oct 26,2024, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# vlog -vlog01compat -work work +incdir+E:/Ass/ECE550/Project {E:/Ass/ECE550/Project/processor.v}
+# Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+# Start time: 17:59:18 on Oct 26,2024
+# vlog -reportprogress 300 -vlog01compat -work work "+incdir+E:/Ass/ECE550/Project" E:/Ass/ECE550/Project/processor.v 
+# -- Compiling module processor
+# 
+# Top level modules:
+# 	processor
+# End time: 17:59:18 on Oct 26,2024, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# vlog -vlog01compat -work work +incdir+E:/Ass/ECE550/Project {E:/Ass/ECE550/Project/imem.v}
+# Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+# Start time: 17:59:18 on Oct 26,2024
+# vlog -reportprogress 300 -vlog01compat -work work "+incdir+E:/Ass/ECE550/Project" E:/Ass/ECE550/Project/imem.v 
+# -- Compiling module imem
+# 
+# Top level modules:
+# 	imem
+# End time: 17:59:18 on Oct 26,2024, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# vlog -vlog01compat -work work +incdir+E:/Ass/ECE550/Project {E:/Ass/ECE550/Project/dmem.v}
+# Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+# Start time: 17:59:18 on Oct 26,2024
+# vlog -reportprogress 300 -vlog01compat -work work "+incdir+E:/Ass/ECE550/Project" E:/Ass/ECE550/Project/dmem.v 
+# -- Compiling module dmem
+# 
+# Top level modules:
+# 	dmem
+# End time: 17:59:18 on Oct 26,2024, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# vlog -vlog01compat -work work +incdir+E:/Ass/ECE550/Project {E:/Ass/ECE550/Project/dffe.v}
+# Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+# Start time: 17:59:19 on Oct 26,2024
+# vlog -reportprogress 300 -vlog01compat -work work "+incdir+E:/Ass/ECE550/Project" E:/Ass/ECE550/Project/dffe.v 
+# -- Compiling module dffe_ref
+# 
+# Top level modules:
+# 	dffe_ref
+# End time: 17:59:19 on Oct 26,2024, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# vlog -vlog01compat -work work +incdir+E:/Ass/ECE550/Project {E:/Ass/ECE550/Project/regfile.v}
+# Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+# Start time: 17:59:19 on Oct 26,2024
+# vlog -reportprogress 300 -vlog01compat -work work "+incdir+E:/Ass/ECE550/Project" E:/Ass/ECE550/Project/regfile.v 
+# -- Compiling module regfile
+# 
+# Top level modules:
+# 	regfile
+# End time: 17:59:19 on Oct 26,2024, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# vlog -vlog01compat -work work +incdir+E:/Ass/ECE550/Project {E:/Ass/ECE550/Project/alu.v}
+# Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+# Start time: 17:59:19 on Oct 26,2024
+# vlog -reportprogress 300 -vlog01compat -work work "+incdir+E:/Ass/ECE550/Project" E:/Ass/ECE550/Project/alu.v 
+# -- Compiling module alu
+# 
+# Top level modules:
+# 	alu
+# End time: 17:59:19 on Oct 26,2024, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# vlog -vlog01compat -work work +incdir+E:/Ass/ECE550/Project {E:/Ass/ECE550/Project/clock_divider.v}
+# Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+# Start time: 17:59:19 on Oct 26,2024
+# vlog -reportprogress 300 -vlog01compat -work work "+incdir+E:/Ass/ECE550/Project" E:/Ass/ECE550/Project/clock_divider.v 
+# -- Compiling module clock_divider
+# 
+# Top level modules:
+# 	clock_divider
+# End time: 17:59:19 on Oct 26,2024, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# vlog -vlog01compat -work work +incdir+E:/Ass/ECE550/Project {E:/Ass/ECE550/Project/reg_12bit.v}
+# Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+# Start time: 17:59:19 on Oct 26,2024
+# vlog -reportprogress 300 -vlog01compat -work work "+incdir+E:/Ass/ECE550/Project" E:/Ass/ECE550/Project/reg_12bit.v 
+# -- Compiling module reg_12bit
+# 
+# Top level modules:
+# 	reg_12bit
+# End time: 17:59:19 on Oct 26,2024, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# 
+# vlog -vlog01compat -work work +incdir+E:/Ass/ECE550/Project {E:/Ass/ECE550/Project/skeleton_tb.v}
+# Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+# Start time: 17:59:19 on Oct 26,2024
+# vlog -reportprogress 300 -vlog01compat -work work "+incdir+E:/Ass/ECE550/Project" E:/Ass/ECE550/Project/skeleton_tb.v 
+# -- Compiling module skeleton_tb
+# 
+# Top level modules:
+# 	skeleton_tb
+# End time: 17:59:19 on Oct 26,2024, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# 
+# vsim -t 1ps -L altera_ver -L lpm_ver -L sgate_ver -L altera_mf_ver -L altera_lnsim_ver -L cycloneive_ver -L rtl_work -L work -voptargs="+acc"  skeleton_tb
+# vsim -t 1ps -L altera_ver -L lpm_ver -L sgate_ver -L altera_mf_ver -L altera_lnsim_ver -L cycloneive_ver -L rtl_work -L work -voptargs=""+acc"" skeleton_tb 
+# Start time: 17:59:19 on Oct 26,2024
+# Loading work.skeleton_tb
+# Loading work.skeleton
+# Loading work.clock_divider
+# Loading work.dffe_ref
+# Loading work.imem
+# Loading altera_mf_ver.altsyncram
+# Loading work.dmem
+# Loading work.regfile
+# Loading work.processor
+# Loading work.alu
+# Loading work.reg_12bit
+# Loading altera_mf_ver.altsyncram_body
+# Loading altera_mf_ver.ALTERA_DEVICE_FAMILIES
+# Loading altera_mf_ver.ALTERA_MF_MEMORY_INITIALIZATION
+# ** Warning: (vsim-3017) E:/Ass/ECE550/Project/skeleton_tb.v(6): [TFMPC] - Too few port connections. Expected 6, found 2.
+#    Time: 0 ps  Iteration: 0  Instance: /skeleton_tb/sk File: E:/Ass/ECE550/Project/skeleton.v
+# ** Warning: (vsim-3722) E:/Ass/ECE550/Project/skeleton_tb.v(6): [TFMPC] - Missing connection for port 'imem_clock'.
+# ** Warning: (vsim-3722) E:/Ass/ECE550/Project/skeleton_tb.v(6): [TFMPC] - Missing connection for port 'dmem_clock'.
+# ** Warning: (vsim-3722) E:/Ass/ECE550/Project/skeleton_tb.v(6): [TFMPC] - Missing connection for port 'processor_clock'.
+# ** Warning: (vsim-3722) E:/Ass/ECE550/Project/skeleton_tb.v(6): [TFMPC] - Missing connection for port 'regfile_clock'.
+# ** Warning: (vsim-3017) E:/Ass/ECE550/Project/skeleton.v(18): [TFMPC] - Too few port connections. Expected 3, found 2.
+#    Time: 0 ps  Iteration: 0  Instance: /skeleton_tb/sk/div1 File: E:/Ass/ECE550/Project/clock_divider.v
+# ** Warning: (vsim-3722) E:/Ass/ECE550/Project/skeleton.v(18): [TFMPC] - Missing connection for port 'reset'.
+# ** Warning: (vsim-3017) E:/Ass/ECE550/Project/skeleton.v(19): [TFMPC] - Too few port connections. Expected 3, found 2.
+#    Time: 0 ps  Iteration: 0  Instance: /skeleton_tb/sk/div2 File: E:/Ass/ECE550/Project/clock_divider.v
+# ** Warning: (vsim-3722) E:/Ass/ECE550/Project/skeleton.v(19): [TFMPC] - Missing connection for port 'reset'.
+# ** Warning: (vsim-3017) E:/Ass/ECE550/Project/processor.v(145): [TFMPC] - Too few port connections. Expected 8, found 5.
+#    Time: 0 ps  Iteration: 0  Instance: /skeleton_tb/sk/my_processor/pc_inc File: E:/Ass/ECE550/Project/alu.v
+# ** Warning: (vsim-3015) E:/Ass/ECE550/Project/processor.v(145): [PCDPC] - Port size (32) does not match connection size (12) for port 'data_result'. The port definition is at: E:/Ass/ECE550/Project/alu.v(2).
+#    Time: 0 ps  Iteration: 0  Instance: /skeleton_tb/sk/my_processor/pc_inc File: E:/Ass/ECE550/Project/alu.v
+# ** Warning: (vsim-3722) E:/Ass/ECE550/Project/processor.v(145): [TFMPC] - Missing connection for port 'isNotEqual'.
+# ** Warning: (vsim-3722) E:/Ass/ECE550/Project/processor.v(145): [TFMPC] - Missing connection for port 'isLessThan'.
+# ** Warning: (vsim-3722) E:/Ass/ECE550/Project/processor.v(145): [TFMPC] - Missing connection for port 'overflow'.
+# 
+# add wave *
+# view structure
+# .main_pane.structure.interior.cs.body.struct
+# view signals
+# .main_pane.objects.interior.cs.body.tree
+# run -all
+# ** Note: $stop    : E:/Ass/ECE550/Project/skeleton_tb.v(21)
+#    Time: 2030 ns  Iteration: 1  Instance: /skeleton_tb
+# Break in Module skeleton_tb at E:/Ass/ECE550/Project/skeleton_tb.v line 21
+restart
+# ** Warning: (vsim-3017) E:/Ass/ECE550/Project/skeleton_tb.v(6): [TFMPC] - Too few port connections. Expected 6, found 2.
+#    Time: 0 ps  Iteration: 0  Instance: /skeleton_tb/sk File: E:/Ass/ECE550/Project/skeleton.v
+# ** Warning: (vsim-3722) E:/Ass/ECE550/Project/skeleton_tb.v(6): [TFMPC] - Missing connection for port 'imem_clock'.
+# ** Warning: (vsim-3722) E:/Ass/ECE550/Project/skeleton_tb.v(6): [TFMPC] - Missing connection for port 'dmem_clock'.
+# ** Warning: (vsim-3722) E:/Ass/ECE550/Project/skeleton_tb.v(6): [TFMPC] - Missing connection for port 'processor_clock'.
+# ** Warning: (vsim-3722) E:/Ass/ECE550/Project/skeleton_tb.v(6): [TFMPC] - Missing connection for port 'regfile_clock'.
+# ** Warning: (vsim-3017) E:/Ass/ECE550/Project/skeleton.v(18): [TFMPC] - Too few port connections. Expected 3, found 2.
+#    Time: 0 ps  Iteration: 0  Instance: /skeleton_tb/sk/div1 File: E:/Ass/ECE550/Project/clock_divider.v
+# ** Warning: (vsim-3722) E:/Ass/ECE550/Project/skeleton.v(18): [TFMPC] - Missing connection for port 'reset'.
+# ** Warning: (vsim-3017) E:/Ass/ECE550/Project/skeleton.v(19): [TFMPC] - Too few port connections. Expected 3, found 2.
+#    Time: 0 ps  Iteration: 0  Instance: /skeleton_tb/sk/div2 File: E:/Ass/ECE550/Project/clock_divider.v
+# ** Warning: (vsim-3722) E:/Ass/ECE550/Project/skeleton.v(19): [TFMPC] - Missing connection for port 'reset'.
+# ** Warning: (vsim-3017) E:/Ass/ECE550/Project/processor.v(145): [TFMPC] - Too few port connections. Expected 8, found 5.
+#    Time: 0 ps  Iteration: 0  Instance: /skeleton_tb/sk/my_processor/pc_inc File: E:/Ass/ECE550/Project/alu.v
+# ** Warning: (vsim-3015) E:/Ass/ECE550/Project/processor.v(145): [PCDPC] - Port size (32) does not match connection size (12) for port 'data_result'. The port definition is at: E:/Ass/ECE550/Project/alu.v(2).
+#    Time: 0 ps  Iteration: 0  Instance: /skeleton_tb/sk/my_processor/pc_inc File: E:/Ass/ECE550/Project/alu.v
+# ** Warning: (vsim-3722) E:/Ass/ECE550/Project/processor.v(145): [TFMPC] - Missing connection for port 'isNotEqual'.
+# ** Warning: (vsim-3722) E:/Ass/ECE550/Project/processor.v(145): [TFMPC] - Missing connection for port 'isLessThan'.
+# ** Warning: (vsim-3722) E:/Ass/ECE550/Project/processor.v(145): [TFMPC] - Missing connection for port 'overflow'.
+run -all
+# ** Note: $stop    : E:/Ass/ECE550/Project/skeleton_tb.v(21)
+#    Time: 2030 ns  Iteration: 1  Instance: /skeleton_tb
+# Break in Module skeleton_tb at E:/Ass/ECE550/Project/skeleton_tb.v line 21
+# End time: 18:00:38 on Oct 26,2024, Elapsed time: 0:01:19
+# Errors: 0, Warnings: 28

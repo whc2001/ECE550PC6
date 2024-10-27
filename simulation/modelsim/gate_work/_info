@@ -1,0 +1,76 @@
+m255
+K4
+z2
+13
+!s112 1.1
+!i10d 8192
+!i10e 25
+!i10f 100
+cModel Technology
+Z0 dE:/Ass/ECE550/Project/simulation/modelsim
+vhard_block
+Z1 !s110 1728331850
+!i10b 1
+!s100 BeXL2gBzf=m2O>Wl15B;_3
+I]hFQ?EFgkGGTeS`kk1@`G2
+Z2 VDg1SIo80bB@j0V0VzS_@n1
+R0
+Z3 w1728243522
+Z4 8ECE550Project_7_1200mv_85c_slow.vo
+Z5 FECE550Project_7_1200mv_85c_slow.vo
+L0 49917
+Z6 OV;L;10.5b;63
+r1
+!s85 0
+31
+Z7 !s108 1728331850.000000
+Z8 !s107 ECE550Project_7_1200mv_85c_slow.vo|
+Z9 !s90 -reportprogress|300|-vlog01compat|-work|work|+incdir+.|ECE550Project_7_1200mv_85c_slow.vo|
+!i113 1
+Z10 o-vlog01compat -work work
+Z11 !s92 -vlog01compat -work work +incdir+.
+Z12 tCvgOpt 0
+vregfile
+R1
+!i10b 1
+!s100 F3QliE0W>LEZ?A@Wc^ZES2
+Ij5WL1UhzSh293I:LeX>_=3
+R2
+R0
+R3
+R4
+R5
+L0 32
+R6
+r1
+!s85 0
+31
+R7
+R8
+R9
+!i113 1
+R10
+R11
+R12
+vregfile_tb
+R1
+!i10b 1
+!s100 j7zV1GHbQ;E[l]X`MkK:J2
+InKJzl^VPdTTa_ciSGcP4_0
+R2
+R0
+w1728243528
+8E:/Ass/ECE550/Project/regfile_tb.v
+FE:/Ass/ECE550/Project/regfile_tb.v
+L0 3
+R6
+r1
+!s85 0
+31
+R7
+!s107 E:/Ass/ECE550/Project/regfile_tb.v|
+!s90 -reportprogress|300|-vlog01compat|-work|work|+incdir+E:/Ass/ECE550/Project|E:/Ass/ECE550/Project/regfile_tb.v|
+!i113 1
+R10
+!s92 -vlog01compat -work work +incdir+E:/Ass/ECE550/Project
+R12
