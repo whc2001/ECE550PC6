@@ -114,13 +114,15 @@ module processor(
 	 wire [16:0] i_imm = q_imem[16:0];
 	 
 	 /*** ALU ***/
+	 wire [31:0] imm_signexted;
+	 signext_17bit_32bit signext(imm_signexted, i_imm);
 	 wire alu_op_is_add = ~r_aluop[4] & ~r_aluop[3] & ~r_aluop[2] & ~r_aluop[1] & ~r_aluop[0];
 	 wire alu_op_is_sub = ~r_aluop[4] & ~r_aluop[3] & ~r_aluop[2] & ~r_aluop[1] & r_aluop[0];
 	 wire [4:0] alu_op_in = (sw_type | lw_type) ? 5'd0 : (arith_r_type ? r_aluop : 5'd0);	// sw/lw/arith-i-type: add
 	 wire [31:0] alu_result;
 	 wire alu_ne, alu_lt, alu_ovf;
 	 wire [31:0] alu_ovf_code;
-	 wire [31:0] alu_operand_b = arith_r_type ? data_readRegB : { 15'b0, i_imm };
+	 wire [31:0] alu_operand_b = arith_r_type ? data_readRegB : imm_signexted;
 	 alu main_alu(
 		.data_operandA(data_readRegA), .data_operandB(alu_operand_b),
 		.ctrl_ALUopcode(alu_op_in), .ctrl_shiftamt(arith_r_type ? r_shamt : 5'b0), 
