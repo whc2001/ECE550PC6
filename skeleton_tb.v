@@ -14,7 +14,7 @@ module skeleton_tb();
 		  @(posedge clock);
 		  reset = 1'b0;
 
-		  for(total_cycles = 0; total_cycles < 100; total_cycles = total_cycles + 1) begin
+		  for(total_cycles = 0; total_cycles < 150; total_cycles = total_cycles + 1) begin
 			@(posedge clock);
 		  end
 
