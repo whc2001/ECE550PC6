@@ -69,7 +69,7 @@ module processor(
     ctrl_readRegB,                  // O: Register to read from port B of regfile
     data_writeReg,                  // O: Data to write to for regfile
     data_readRegA,                  // I: Data from port A of regfile
-    data_readRegB,                   // I: Data from port B of regfile
+    data_readRegB                   // I: Data from port B of regfile
 );
 
     // Control signals
@@ -102,15 +102,14 @@ module processor(
 	 wire arith_i_type = ~opcode[4] & ~opcode[3] & opcode[2] & ~opcode[1] & opcode[0];
 	 wire sw_type = ~opcode[4] & ~opcode[3] & opcode[2] & opcode[1] & opcode[0];
 	 wire lw_type = ~opcode[4] & opcode[3] & ~opcode[2] & ~opcode[1] & ~opcode[0];
-	 // R-type shorthands
+	 // Common shorthands
 	 wire [4:0] rd = q_imem[26:22];
 	 wire [4:0] rs = q_imem[21:17];
+	 // R-type shorthands
 	 wire [4:0] r_rt = q_imem[16:12];
 	 wire [4:0] r_shamt = q_imem[11:7];
 	 wire [4:0] r_aluop = q_imem[6:2];
 	 // I-type shorthands
-	 wire [4:0] i_rd = q_imem[26:22];
-	 wire [4:0] i_rs = q_imem[21:17];
 	 wire [16:0] i_imm = q_imem[16:0];
 	 
 	 /*** ALU ***/
@@ -144,7 +143,7 @@ module processor(
 	 
 	 /*** PC Autoincrease ***/
 	 reg_12bit pc(pc_out, pc_in, clock, 1'b1, reset);
-	 alu pc_inc({20'b0, pc_out}, 32'd1, 5'd0, 5'd0, pc_next);
+	 alu pc_inc(.data_operandA({20'b0, pc_out}), .data_operandB(32'd1), .ctrl_ALUopcode(5'd0), .data_result(pc_next));
 	 assign pc_in = pc_next;	// changelater for JMP
 	 
 endmodule

@@ -15,8 +15,8 @@ module skeleton(clock, reset, imem_clock, dmem_clock, processor_clock, regfile_c
 	 
 	 assign imem_clock = clock;
 	 assign dmem_clock = clock;
-	 clock_divider div1(regfile_clock, clock);
-	 clock_divider div2(processor_clock, regfile_clock);
+	 clock_divider div1(regfile_clock, clock, reset);
+	 clock_divider div2(processor_clock, regfile_clock, reset);
 
     /** IMEM **/
     // Figure out how to generate a Quartus syncram component and commit the generated verilog file.
@@ -85,7 +85,7 @@ module skeleton(clock, reset, imem_clock, dmem_clock, processor_clock, regfile_c
         ctrl_readRegB,                  // O: Register to read from port B of regfile
         data_writeReg,                  // O: Data to write to for regfile
         data_readRegA,                  // I: Data from port A of regfile
-        data_readRegB,                   // I: Data from port B of regfile
+        data_readRegB                   // I: Data from port B of regfile
     );
 
 endmodule
