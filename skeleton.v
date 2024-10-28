@@ -13,9 +13,9 @@ module skeleton(clock, reset, imem_clock, dmem_clock, processor_clock, regfile_c
     input clock, reset;	 
     output imem_clock, dmem_clock, processor_clock, regfile_clock;
 	 
-	 assign imem_clock = clock;
-	 assign dmem_clock = clock;
-	 clock_divider_half div1(regfile_clock, clock, reset);
+	 assign imem_clock = ~clock;
+	 assign dmem_clock = ~clock;
+	 clock_divider_quarter div1(regfile_clock, clock, reset);
 	 clock_divider_quarter div2(processor_clock, clock, reset);
 
     /** IMEM **/
