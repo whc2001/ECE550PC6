@@ -12,6 +12,8 @@ module skeleton_tb();
 		  reset = 1'b1;
 		  @(posedge clock);
 		  @(posedge clock);
+		  @(posedge clock);
+		  @(posedge clock);
 		  reset = 1'b0;
 
 		  for(total_cycles = 0; total_cycles < 150; total_cycles = total_cycles + 1) begin

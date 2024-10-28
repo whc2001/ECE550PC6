@@ -1,0 +1,9 @@
+module clock_divider_quarter(clkout, clkin, reset);
+	input clkin, reset;
+	output clkout;
+	
+	wire dffe1_in, dffe2_in;
+
+	not inv(dffe_in, clkout);
+	dffe_ref dff(clkout, dffe_in, clkin, 1'b1, reset);
+endmodule

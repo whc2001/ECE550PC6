@@ -1,4 +1,0 @@
-module clock_divider(clkout, clkin, reset)
-	input clkin, reset;
-	output clkout;
-endmodule

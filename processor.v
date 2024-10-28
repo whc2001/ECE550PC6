@@ -128,12 +128,13 @@ module processor(
 		.data_result(alu_result), 
 		.isNotEqual(alu_ne), .isLessThan(alu_lt), .overflow(alu_ovf));
 	 assign alu_ovf_code = arith_i_type ? 32'd2 : (alu_op_is_add ? 32'd1 : (alu_op_is_sub ? 32'd3 : 32'd0));
+	 assign alu_should_ovf = (alu_op_is_add | alu_op_is_sub) & alu_ovf;
 
 	 /*** RegFile Operation ***/
 	 assign ctrl_readRegA = rs;
 	 assign ctrl_readRegB = sw_type ? rd : (arith_r_type ? r_rt : r_rt);	// If SW, read value of rd, otherwise for later
-	 assign ctrl_writeReg = lw_type ? rd : (alu_ovf ? 5'd30 : rd);	// If LW, write to rd
-	 assign data_writeReg = lw_type ? q_dmem : (alu_ovf ? alu_ovf_code : alu_result);	// If LW, read from DMEM
+	 assign ctrl_writeReg = lw_type ? rd : (alu_should_ovf ? 5'd30 : rd);	// If LW, write to rd
+	 assign data_writeReg = lw_type ? q_dmem : (alu_should_ovf ? alu_ovf_code : alu_result);	// If LW, read from DMEM
 	 assign ctrl_writeEnable = arith_r_type | arith_i_type | lw_type;
 	 
 	 /*** DMEM Operation ***/
