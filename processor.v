@@ -93,7 +93,8 @@ module processor(
 	 
 	 /*** PC wires ***/
 	 wire [11:0] pc_in, pc_out;
-	 wire [11:0] pc_next;
+	 wire [11:0] pc_next, pc_branch;
+	 wire bne_should_jump, blt_should_jump, bex_should_jump;
 	 
 	 /*** Instruction fetch ***/
     assign address_imem = pc_out;
@@ -102,6 +103,13 @@ module processor(
 	 wire arith_i_type = ~opcode[4] & ~opcode[3] & opcode[2] & ~opcode[1] & opcode[0];
 	 wire sw_type = ~opcode[4] & ~opcode[3] & opcode[2] & opcode[1] & opcode[0];
 	 wire lw_type = ~opcode[4] & opcode[3] & ~opcode[2] & ~opcode[1] & ~opcode[0];
+	 wire j_type = ~opcode[4] & ~opcode[3] & ~opcode[2] & ~opcode[1] & opcode[0];
+	 wire bne_type = ~opcode[4] & ~opcode[3] & ~opcode[2] & opcode[1] & ~opcode[0];
+	 wire jal_type = ~opcode[4] & ~opcode[3] & ~opcode[2] & opcode[1] & opcode[0];
+	 wire jr_type = ~opcode[4] & ~opcode[3] & opcode[2] & ~opcode[1] & ~opcode[0];
+	 wire blt_type = ~opcode[4] & ~opcode[3] & opcode[2] & opcode[1] & ~opcode[0];
+	 wire bex_type = opcode[4] & ~opcode[3] & opcode[2] & opcode[1] & ~opcode[0];
+	 wire setx_type = opcode[4] & ~opcode[3] & opcode[2] & ~opcode[1] & opcode[0];
 	 // Common shorthands
 	 wire [4:0] rd = q_imem[26:22];
 	 wire [4:0] rs = q_imem[21:17];
@@ -111,6 +119,8 @@ module processor(
 	 wire [4:0] r_aluop = q_imem[6:2];
 	 // I-type shorthands
 	 wire [16:0] i_imm = q_imem[16:0];
+	 // JI-type shorthands
+	 wire [26:0] ji_t = q_imem[26:0];
 	 
 	 /*** ALU ***/
 	 wire [31:0] imm_signexted;
@@ -121,7 +131,7 @@ module processor(
 	 wire [31:0] alu_result;
 	 wire alu_ne, alu_lt, alu_ovf;
 	 wire [31:0] alu_ovf_code;
-	 wire [31:0] alu_operand_b = arith_r_type ? data_readRegB : imm_signexted;
+	 wire [31:0] alu_operand_b = bex_type ? 32'd0 : ((bne_type | blt_type | arith_r_type) ? data_readRegB : imm_signexted);
 	 alu main_alu(
 		.data_operandA(data_readRegA), .data_operandB(alu_operand_b),
 		.ctrl_ALUopcode(alu_op_in), .ctrl_shiftamt(arith_r_type ? r_shamt : 5'b0), 
@@ -129,13 +139,16 @@ module processor(
 		.isNotEqual(alu_ne), .isLessThan(alu_lt), .overflow(alu_ovf));
 	 assign alu_ovf_code = arith_i_type ? 32'd2 : (alu_op_is_add ? 32'd1 : (alu_op_is_sub ? 32'd3 : 32'd0));
 	 assign alu_should_ovf = (alu_op_is_add | alu_op_is_sub) & alu_ovf;
-
+	 assign bne_should_jump = bne_type & alu_ne;
+	 assign blt_should_jump = blt_type & alu_lt;
+	 assign bex_should_jump = bex_type & alu_ne;
+	 
 	 /*** RegFile Operation ***/
-	 assign ctrl_readRegA = rs;
-	 assign ctrl_readRegB = sw_type ? rd : (arith_r_type ? r_rt : r_rt);	// If SW, read value of rd, otherwise for later
-	 assign ctrl_writeReg = lw_type ? rd : (alu_should_ovf ? 5'd30 : rd);	// If LW, write to rd
-	 assign data_writeReg = lw_type ? q_dmem : (alu_should_ovf ? alu_ovf_code : alu_result);	// If LW, read from DMEM
-	 assign ctrl_writeEnable = arith_r_type | arith_i_type | lw_type;
+	 assign ctrl_readRegA = bex_type ? 5'd30 : ((bne_type | blt_type | jr_type) ? rd : rs);
+	 assign ctrl_readRegB = (bne_type | blt_type) ? rs : (sw_type ? rd : (arith_r_type ? r_rt : r_rt));	// If SW, read value of rd, otherwise for later
+	 assign ctrl_writeReg = jal_type ? 5'd31 : (lw_type ? rd : ((alu_should_ovf | setx_type) ? 5'd30 : rd));	// If JAL, r31; If LW, write to rd
+	 assign data_writeReg = jal_type ? {20'd0, pc_next} : (lw_type ? q_dmem : (alu_should_ovf ? alu_ovf_code : (setx_type ? {5'd0, ji_t} : alu_result)));	// If JAL, pc + 1; If LW, read from DMEM
+	 assign ctrl_writeEnable = arith_r_type | arith_i_type | lw_type | jal_type | setx_type;
 	 
 	 /*** DMEM Operation ***/
 	 assign address_dmem = alu_result;
@@ -145,6 +158,7 @@ module processor(
 	 /*** PC Autoincrease ***/
 	 reg_12bit pc(pc_out, pc_in, clock, 1'b1, reset);
 	 alu pc_inc(.data_operandA({20'b0, pc_out}), .data_operandB(32'd1), .ctrl_ALUopcode(5'd0), .data_result(pc_next));
-	 assign pc_in = pc_next;	// changelater for JMP
+	 alu pc_branch(.data_operandA({20'b0, pc_next}), .data_operandB({15'b0, i_imm}), .ctrl_ALUopcode(5'd0), .data_result(pc_branch));
+	 assign pc_in = (jal_type | j_type | bex_should_jump) ? ji_t : ((bne_should_jump | blt_should_jump) ? pc_branch : (jr_type ? data_readRegA : pc_next));	// changelater for JMP
 	 
 endmodule
