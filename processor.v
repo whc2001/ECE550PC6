@@ -157,8 +157,8 @@ module processor(
 	 
 	 /*** PC Autoincrease ***/
 	 reg_12bit pc(pc_out, pc_in, clock, 1'b1, reset);
-	 alu pc_inc(.data_operandA({20'b0, pc_out}), .data_operandB(32'd1), .ctrl_ALUopcode(5'd0), .data_result(pc_next));
-	 alu pc_branch(.data_operandA({20'b0, pc_next}), .data_operandB({15'b0, i_imm}), .ctrl_ALUopcode(5'd0), .data_result(pc_branch));
+	 alu pc_inc_alu(.data_operandA({20'b0, pc_out}), .data_operandB(32'd1), .ctrl_ALUopcode(5'd0), .data_result(pc_next));
+	 alu pc_branch_alu(.data_operandA({20'b0, pc_next}), .data_operandB({15'b0, i_imm}), .ctrl_ALUopcode(5'd0), .data_result(pc_branch));
 	 assign pc_in = (jal_type | j_type | bex_should_jump) ? ji_t : ((bne_should_jump | blt_should_jump) ? pc_branch : (jr_type ? data_readRegA : pc_next));	// changelater for JMP
 	 
 endmodule
