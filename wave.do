@@ -6,9 +6,6 @@ add wave -noupdate /skeleton_tb/total_cycles
 add wave -noupdate /skeleton_tb/clock
 add wave -noupdate /skeleton_tb/reset
 add wave -noupdate /skeleton_tb/total_cycles
-add wave -noupdate /skeleton_tb/clock
-add wave -noupdate /skeleton_tb/reset
-add wave -noupdate /skeleton_tb/total_cycles
 add wave -noupdate /skeleton_tb/sk/imem_clock
 add wave -noupdate /skeleton_tb/sk/dmem_clock
 add wave -noupdate /skeleton_tb/sk/regfile_clock
