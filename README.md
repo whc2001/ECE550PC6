@@ -26,9 +26,9 @@ This is the provided ALU reference design that is implemented with behavioral Ve
 
 This is the provided register file reference design that is implemented with behavioral Verilog. No changes are made to this module.
 
-### clock_divider_half.v
+### clock_divider_quarter.v
 
-This is a simple quarter clock divider implemented with DFFE. The output clock is 1/2 of the input clock. This module is used to generate a 25MHz clock signal from the master 50MHz clock signal for the processor core and the regfile.
+This is a simple quarter clock divider implemented by chaining two DFFEs. The output clock is 1/4 of the input clock. This module is used to generate a 12.5MHz clock signal from the master 50MHz clock signal for the processor core and the regfile.
 
 ### reg_12bit.v
 
@@ -44,4 +44,4 @@ This is the main processor design that is built upon with various forementioned 
 
 ### skeleton.v
 
-This is the provided wrapper module that initiates all the components and enables testing. Four clock signals are generated: DMEM and IMEM is using the master 50MHz clock (inverted), and the regfile and the core is using halved 25MHz clock. 
+This is the provided wrapper module that initiates all the components and enables testing. Four clock signals are generated: DMEM and IMEM is using the master 50MHz clock (inverted), and the regfile and the core is using halved 12.5MHz clock. 
