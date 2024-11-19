@@ -5,12 +5,12 @@ Haochen Wang (hw362), Yongqi Shi (ys467)
 ## Introduction
 
 This checkpoint implements a simple processor core with the following instructions:
-Arithmetic: ADD, ADDI, SUB, AND, OR, SLL, SRA 
+Arithmetic: ADD, ADDI, SUB, AND, OR, SLL, SRA
 Memory: SW, LW
 Flow Control: J, JAL, JR, BEQ, BNE, BEX
 Miscellaneous: NOP, SETX
 
-It works with a 50MHz master clock, loads and executes instructions from IMEM according to PC, and can read/write the DMEM.
+It works with a 50MHz master clock input, loads and executes instructions from IMEM according to PC, and can read/write the DMEM.
 
 ## Modules
 
@@ -40,8 +40,8 @@ This is a sign extension module that extends a 17-bit input to a 32-bit output. 
 
 ### processor.v
 
-This is the main processor design that is built upon with various forementioned modules. The datapath design on the slides are followed. 
+This is the main processor design that is built upon with various forementioned modules. The datapath design on the slides are followed. Various jump commands are also incorporated in PC5.
 
 ### skeleton.v
 
-This is the provided wrapper module that initiates all the components and enables testing. Four clock signals are generated: DMEM and IMEM is using the master 50MHz clock (inverted), and the regfile and the core is using halved 12.5MHz clock. 
+This is the provided wrapper module that initiates all the components and enables testing. Four clock signals are generated: DMEM and IMEM is using the master 50MHz clock (IMEM inverted), and the regfile and the core is using quartered 12.5MHz clock.
