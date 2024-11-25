@@ -9,14 +9,33 @@
  * inspect which signals the processor tries to assert when.
  */
 
-module skeleton(clock, reset, imem_clock, dmem_clock, processor_clock, regfile_clock);
+module skeleton(clock, reset, imem_clock, dmem_clock, processor_clock, regfile_clock,
+	ps2_clock, ps2_data,
+	VGA_CLK,
+	VGA_HS,
+	VGA_VS,
+	VGA_BLANK,
+	VGA_SYNC,
+	VGA_R,
+	VGA_G,
+	VGA_B,
+	);
     input clock, reset;	 
     output imem_clock, dmem_clock, processor_clock, regfile_clock;
-	 
+	 inout ps2_data, ps2_clock;
+	output VGA_CLK, VGA_HS, VGA_VS, VGA_BLANK, VGA_SYNC;
+	output [7:0] VGA_R, VGA_G, VGA_B;
+	
+	/** Debug LEDs **/
+	reg [7:0]    led_buf = 8'h00;
+	assign leds = led_buf;
+	
+	/** Init Clock **/
 	 assign imem_clock = ~clock;
 	 assign dmem_clock = clock;
 	 clock_divider_quarter div1(regfile_clock, clock, reset);
 	 clock_divider_quarter div2(processor_clock, clock, reset);
+
 
     /** IMEM **/
     // Figure out how to generate a Quartus syncram component and commit the generated verilog file.
@@ -61,6 +80,39 @@ module skeleton(clock, reset, imem_clock, dmem_clock, processor_clock, regfile_c
         data_readRegA,
         data_readRegB
     );
+	 
+	 /** PS2 Keyboard **/
+	 wire [1:0] space_state;
+	reg reset_space_state;
+	 PS2_Interface myps2(clock, resetn, ps2_clock, ps2_data, space_state, reset_space_state);
+	 
+	// On key pressed
+	always @(posedge clock) begin
+		if (space_state == 2'd1) begin
+			led_buf = 8'b1;
+			reset_space_state = 1'b1;
+		end
+		else if (space_state == 2'd2) begin
+			led_buf = 8'b0;
+			reset_space_state = 1'b1;
+		end
+		else
+			reset_space_state = 1'b0;
+	end
+	 
+	 	 /** VGA controller **/
+	 wire DLY_RST, VGA_CTRL_CLK, VGA_CLK, AUD_CTRL_CLK;
+	 Reset_Delay r0 (.iCLK(clock),.oRESET(DLY_RST));
+	 VGA_Audio_PLL pll	(.areset(~DLY_RST),.inclk0(clock),.c0(VGA_CTRL_CLK),.c1(AUD_CTRL_CLK),.c2(VGA_CLK)	);
+	 vga_controller vga_ctrl(.iRST_n(DLY_RST),
+								 .iVGA_CLK(VGA_CLK),
+								 .oBLANK_n(VGA_BLANK),
+								 .oHS(VGA_HS),
+								 .oVS(VGA_VS),
+								 .b_data(VGA_B),
+								 .g_data(VGA_G),
+								 .r_data(VGA_R),
+							);
 
     /** PROCESSOR **/
     processor my_processor(
@@ -85,7 +137,8 @@ module skeleton(clock, reset, imem_clock, dmem_clock, processor_clock, regfile_c
         ctrl_readRegB,                  // O: Register to read from port B of regfile
         data_writeReg,                  // O: Data to write to for regfile
         data_readRegA,                  // I: Data from port A of regfile
-        data_readRegB                   // I: Data from port B of regfile
-    );
+        data_readRegB,                   // I: Data from port B of regfile
 
+    );
+	 
 endmodule
