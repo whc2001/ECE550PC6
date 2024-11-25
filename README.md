@@ -1,47 +1,41 @@
-# ECE 550 Project Checkpoint 5
+# Verilog 模块
 
-Haochen Wang (hw362), Yongqi Shi (ys467)
+- [x] PS/2 键盘输入
+- [ ] 根据多种寄存器渲染游戏画面
+- [ ] 随机数生成
+- [ ] 胶水逻辑
 
-## Introduction
+# MIPS 新指令
 
-This checkpoint implements a simple processor core with the following instructions:
-Arithmetic: ADD, ADDI, SUB, AND, OR, SLL, SRA
-Memory: SW, LW
-Flow Control: J, JAL, JR, BEQ, BNE, BEX
-Miscellaneous: NOP, SETX
+- `pkey $rd` 读按键状态寄存器到 $rd 并重设为0（0=没有新动作 1=按下 2=弹起）
+- `sscr $rd` 写 $rd 到分数显示寄存器，值被 Verilog 钳制在（0-99）
+- `shis $rd` 写 $rd 到最高分显示寄存器？，值被 Verilog 钳制在（0-99）
+- `ssta $rd` 写游戏状态显示寄存器，控制屏幕渲染（0=点击开始 1=游戏进行中 2=游戏结束）
+- `spos $rd` 写 $rd 到鸟的位置显示寄存器... （鸟只在 y 轴上移动）
+- 柱子的位置? 柱子的数量? 柱子的表示法（以空挡的位置表示？）
 
-It works with a 50MHz master clock input, loads and executes instructions from IMEM according to PC, and can read/write the DMEM.
 
-## Modules
-
-### dffe.v
-
-This is the provided DFFE reference design that is implemented with behavioral Verilog. No changes are made to this module.
-
-### alu.v
-
-This is the provided ALU reference design that is implemented with behavioral Verilog. No changes are made to this module.
-
-### regfile.v
-
-This is the provided register file reference design that is implemented with behavioral Verilog. No changes are made to this module.
-
-### clock_divider_quarter.v
-
-This is a simple quarter clock divider implemented by chaining two DFFEs. The output clock is 1/4 of the input clock. This module is used to generate a 12.5MHz clock signal from the master 50MHz clock signal for the processor core and the regfile.
-
-### reg_12bit.v
-
-This is a single 12-bit register file that uses 12 instances of the DFFE module. The `d` and `q` are 12-bit instead of 32-bit. Generative for loop is used to instantiate 12 DFFEs. It is used as the Program Counter (PC) register in the processor core.
-
-### signext_17bit_32bit.v
-
-This is a sign extension module that extends a 17-bit input to a 32-bit output. The most significant bit of the input is connected to all the idling most significant bits of the output. This module is used to sign-extend the IMM value of the ADDI instruction.
-
-### processor.v
-
-This is the main processor design that is built upon with various forementioned modules. The datapath design on the slides are followed. Various jump commands are also incorporated in PC5.
-
-### skeleton.v
-
-This is the provided wrapper module that initiates all the components and enables testing. Four clock signals are generated: DMEM and IMEM is using the master 50MHz clock (IMEM inverted), and the regfile and the core is using quartered 12.5MHz clock.
+# MIPS 逻辑
+```
+状态 == 0:
+    初始化
+    等待按键 == 1
+    状态 = 1
+状态 == 1:
+    if 碰撞检测:
+        状态 = 2
+    if 按键 == 1:
+        更新速度&加速度
+    else
+        更新速度
+    重新计算鸟的坐标
+    计算柱子位置
+    更新分数
+状态 == 2:
+    从 dmem 读取最高分
+    更新分数和最高分显示
+    if 分数 > 最高分:
+        写入最高分到 dmem
+    等待按键 == 1
+    状态 = 0
+```
