@@ -132,7 +132,7 @@ module processor(
 	 wire alu_op_is_sub = ~r_aluop[4] & ~r_aluop[3] & ~r_aluop[2] & ~r_aluop[1] & r_aluop[0];
 	 wire [4:0] alu_op_in = (sw_type | lw_type) ? 5'd0 : (arith_r_type ? r_aluop : 5'd0);	// sw/lw/arith-i-type: add
 	 wire [31:0] alu_result;
-	 wire alu_ne, alu_lt, alu_ovf;
+	 wire alu_ne, alu_lt, alu_ovf, alu_should_ovf;
 	 wire [31:0] alu_ovf_code;
 	 wire [31:0] alu_operand_b = bex_type ? 32'd0 : ((bne_type | blt_type | arith_r_type) ? data_readRegB : imm_signexted);
 	 alu main_alu(

@@ -68,14 +68,18 @@ img_index	img_index_inst (
 
 */
 
-// Test Pattern
-test_pattern_generator tp(bgr_data_raw, ADDR);
+/** Game Render Controller **/
+game_render_controller grc (
+    .oPixel(bgr_data_raw),
+    .iClock(iVGA_CLK),
+    .iAddress(ADDR)
+);
 
 //////latch valid data at falling edge;
 always@(posedge VGA_CLK_n) bgr_data <= bgr_data_raw;
-assign b_data = bgr_data[23:16];
+assign r_data = bgr_data[23:16];
 assign g_data = bgr_data[15:8];
-assign r_data = bgr_data[7:0]; 
+assign b_data = bgr_data[7:0]; 
 ///////////////////
 //////Delay the iHD, iVD,iDEN for one clock cycle;
 always@(negedge iVGA_CLK)

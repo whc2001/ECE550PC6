@@ -9,7 +9,8 @@
  * inspect which signals the processor tries to assert when.
  */
 
-module skeleton(clock, reset, imem_clock, dmem_clock, processor_clock, regfile_clock,
+module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_clock,
+	leds,
 	ps2_clock, ps2_data,
 	VGA_CLK,
 	VGA_HS,
@@ -20,11 +21,16 @@ module skeleton(clock, reset, imem_clock, dmem_clock, processor_clock, regfile_c
 	VGA_G,
 	VGA_B,
 	);
-    input clock, reset;	 
+    input clock, resetn;	 
     output imem_clock, dmem_clock, processor_clock, regfile_clock;
 	 inout ps2_data, ps2_clock;
+	 output [7:0] leds;
 	output VGA_CLK, VGA_HS, VGA_VS, VGA_BLANK, VGA_SYNC;
 	output [7:0] VGA_R, VGA_G, VGA_B;
+	
+	/** HW Reset **/
+	wire reset;
+	assign reset = ~resetn;
 	
 	/** Debug LEDs **/
 	reg [7:0]    led_buf = 8'h00;
@@ -84,7 +90,7 @@ module skeleton(clock, reset, imem_clock, dmem_clock, processor_clock, regfile_c
 	 /** PS2 Keyboard **/
 	 wire [1:0] space_state;
 	reg reset_space_state;
-	 PS2_Interface myps2(clock, resetn, ps2_clock, ps2_data, space_state, reset_space_state);
+	 PS2_Interface myps2(clock, ~reset, ps2_clock, ps2_data, space_state, reset_space_state);
 	 
 	// On key pressed
 	always @(posedge clock) begin
@@ -103,7 +109,7 @@ module skeleton(clock, reset, imem_clock, dmem_clock, processor_clock, regfile_c
 	 	 /** VGA controller **/
 	 wire DLY_RST, VGA_CTRL_CLK, VGA_CLK, AUD_CTRL_CLK;
 	 Reset_Delay r0 (.iCLK(clock),.oRESET(DLY_RST));
-	 VGA_Audio_PLL pll	(.areset(~DLY_RST),.inclk0(clock),.c0(VGA_CTRL_CLK),.c1(AUD_CTRL_CLK),.c2(VGA_CLK)	);
+	 VGA_Audio_PLL pll	(.areset(~DLY_RST),.inclk0(clock),.c0(VGA_CTRL_CLK),.c1(AUD_CTRL_CLK),.c2(VGA_CLK));
 	 vga_controller vga_ctrl(.iRST_n(DLY_RST),
 								 .iVGA_CLK(VGA_CLK),
 								 .oBLANK_n(VGA_BLANK),
