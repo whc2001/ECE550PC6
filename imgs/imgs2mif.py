@@ -36,7 +36,7 @@ def process_images(input_folder, output_folder):
         os.makedirs(output_folder)
 
     # First color is hardcoded as transparent
-    all_colors = { 0: 0 }
+    all_colors = {}
     color_index = 1
     image_pixel_maps = {}
     image_info = {}
@@ -66,10 +66,14 @@ def process_images(input_folder, output_folder):
                         pixel_map.append(0)
             image_pixel_maps[filename] = pixel_map
 
+    all_colors[0] = 0   # Hardcoded value to represent transparent color
+    color_map = [0] * len(all_colors)
+    for key, value in all_colors.items():
+        color_map[value] = key
     color_map_path = os.path.join(output_folder, "color_map.mif")
     with open(color_map_path, 'w') as f:
         mif_content = generate_mif_content(
-            all_colors.keys(),
+            color_map,
             width=24,
             comments=["Color Map"]
         )
