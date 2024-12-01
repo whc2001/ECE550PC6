@@ -1,10 +1,10 @@
-module game_render_controller(oPixel, iClock, iAddress, iBirdY, iScore);
+module game_render_controller(oPixel, iClock, iAddress, iReset, iBirdY, iScore);
 
 	localparam SCREEN_WIDTH = 640;
 	localparam SCREEN_HEIGHT = 480;
 
 	input [18:0] iAddress;  // 640*480 = 307200
-	input iClock;
+	input iClock, iReset;
 	input [9:0] iBirdY;
 	input [15:0] iScore;
 	output [23:0] oPixel;
@@ -93,6 +93,12 @@ module game_render_controller(oPixel, iClock, iAddress, iBirdY, iScore);
 	
 	/** Rendering Logic - Timer Calculating **/
 	always @(posedge iClock) begin
+		/** Reset Logic **/
+		if (iReset == 1'b1) begin
+			bg_cur_x = 0;
+			bird_flap_state = 0;
+		end
+		
 		/** Per Frame Logic **/
 		if (iAddress == 0) begin
 			/** Background Scrolling **/

@@ -98,31 +98,13 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 	reg reset_space_state;
 	PS2_Interface myps2(clock, ~reset, ps2_clock, ps2_data, space_state, reset_space_state);
 	
-	// On key pressed
-	always @(posedge clock) begin
-		if (space_state == 2'd1 && !reset_space_state) begin
-			led_buf = 8'b1;
-			score = score + 1;
-			dir = (bird_y <= 0 | bird_y >= 456) ? ~dir : dir;
-			bird_y = dir ? bird_y + 10 : bird_y - 10;
-			reset_space_state = 1'b1;
-		end
-		else if (space_state == 2'd2 && !reset_space_state) begin
-			led_buf = 8'b0;
-			reset_space_state = 1'b1;
-		end
-		else begin
-			reset_space_state = 1'b0;
-		end
-	end
-	
-		/** VGA controller **/
+	/** VGA controller **/
 	wire DLY_RST, VGA_CTRL_CLK, VGA_CLK, AUD_CTRL_CLK;
 	wire [18:0] ADDR;
 	wire [23:0] rgb_data_raw;
 	Reset_Delay r0 (.iCLK(clock),.oRESET(DLY_RST));
 	VGA_Audio_PLL pll	(.areset(~DLY_RST),.inclk0(clock),.c0(VGA_CTRL_CLK),.c1(AUD_CTRL_CLK),.c2(VGA_CLK));
-	vga_controller vga_ctrl(.iRST_n(DLY_RST),
+	vga_controller vga_ctrl(.iRST_n(DLY_RST & resetn),	// Low enabled
 								.iVGA_CLK(VGA_CLK),
 								.oBLANK_n(VGA_BLANK),
 								.oHS(VGA_HS),
@@ -136,6 +118,7 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 	game_render_controller renderer(.oPixel(rgb_data_raw), 
 								.iClock(VGA_CLK),
 								.iAddress(ADDR),
+								.iReset(reset),
 								.iBirdY(bird_y),
 								.iScore(score)
 								);
@@ -167,5 +150,29 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 		data_readRegB,				  // I: Data from port B of regfile
 
 	);
+	
+	// Test logic
+	always @(posedge clock) begin
+		if (reset == 1'b1) begin
+			score = 0;
+			bird_y = 0;
+			dir = 0;
+		end
+		
+		if (space_state == 2'd1 && !reset_space_state) begin
+			led_buf = 8'b1;
+			score = score + 1;
+			dir = (bird_y <= 0 | bird_y >= 456) ? ~dir : dir;
+			bird_y = dir ? bird_y + 10 : bird_y - 10;
+			reset_space_state = 1'b1;
+		end
+		else if (space_state == 2'd2 && !reset_space_state) begin
+			led_buf = 8'b0;
+			reset_space_state = 1'b1;
+		end
+		else begin
+			reset_space_state = 1'b0;
+		end
+	end
 	
 endmodule
