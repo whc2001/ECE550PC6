@@ -10,7 +10,7 @@ module game_render_controller(oPixel, iClock, iAddress, iBirdY, iScore);
 	output [23:0] oPixel;
 
 	/** Color Mapper **/
-	reg [12:0] color_cidx_in;
+	reg [5:0] color_cidx_in;
 	color_map cm (
 		.address(color_cidx_in),
 		.clock(iClock),
@@ -21,7 +21,7 @@ module game_render_controller(oPixel, iClock, iAddress, iBirdY, iScore);
 	localparam BG_WIDTH = 260;
 	localparam BG_HEIGHT = 480;
 	reg [16:0] bg_pidx_in;
-	wire [15:0] bg_cidx_out;
+	wire [5:0] bg_cidx_out;
 	bg_pixelmap bg (
 		.address(bg_pidx_in),
 		.clock(iClock),
@@ -38,8 +38,8 @@ module game_render_controller(oPixel, iClock, iAddress, iBirdY, iScore);
 	localparam BIRD_HEIGHT = 24;
 	reg is_in_bird_area;
 	reg [9:0] bird_pidx_in; 
-	wire [15:0] bird_0_cidx_out, bird_1_cidx_out, bird_2_cidx_out;
-	reg [15:0] bird_cidx_out;
+	wire [5:0] bird_0_cidx_out, bird_1_cidx_out, bird_2_cidx_out;
+	reg [5:0] bird_cidx_out;
 	bird2_0_pixelmap bird_0 (
 		.address(bird_pidx_in),
 		.clock(iClock),
@@ -61,6 +61,11 @@ module game_render_controller(oPixel, iClock, iAddress, iBirdY, iScore);
 	reg [31:0] bird_flap_timer;
 	reg [1:0] bird_flap_state;
 
+	/** Pipe Pixel Mapper **/
+	localparam PIPE_WIDTH = 52;
+	localparam PIPE_HEIGHT = 320;
+	
+
 	/** Score Number **/
 	localparam NUMBER_WIDTH = 24;
 	localparam NUMBER_HEIGHT = 44;
@@ -72,7 +77,7 @@ module game_render_controller(oPixel, iClock, iAddress, iBirdY, iScore);
 
 	reg is_in_score_tens_area, is_in_score_ones_area;
 	reg [10:0] number_pidx_in;
-	wire [15:0] number_cidx_out;
+	wire [5:0] number_cidx_out;
 	number_font_selector num(
 		.oColorIndex(number_cidx_out),
 		.iClock(iClock),

@@ -44,7 +44,7 @@ module font_054_pixelmap (
 
 	input	[10:0]  address;
 	input	  clock;
-	output	[15:0]  q;
+	output	[5:0]  q;
 `ifndef ALTERA_RESERVED_QIS
 // synopsys translate_off
 `endif
@@ -53,8 +53,8 @@ module font_054_pixelmap (
 // synopsys translate_on
 `endif
 
-	wire [15:0] sub_wire0;
-	wire [15:0] q = sub_wire0[15:0];
+	wire [5:0] sub_wire0;
+	wire [5:0] q = sub_wire0[5:0];
 
 	altsyncram	altsyncram_component (
 				.address_a (address),
@@ -72,7 +72,7 @@ module font_054_pixelmap (
 				.clocken1 (1'b1),
 				.clocken2 (1'b1),
 				.clocken3 (1'b1),
-				.data_a ({16{1'b1}}),
+				.data_a ({6{1'b1}}),
 				.data_b (1'b1),
 				.eccstatus (),
 				.q_b (),
@@ -93,7 +93,7 @@ module font_054_pixelmap (
 		altsyncram_component.outdata_aclr_a = "NONE",
 		altsyncram_component.outdata_reg_a = "CLOCK0",
 		altsyncram_component.widthad_a = 11,
-		altsyncram_component.width_a = 16,
+		altsyncram_component.width_a = 6,
 		altsyncram_component.width_byteena_a = 1;
 
 
