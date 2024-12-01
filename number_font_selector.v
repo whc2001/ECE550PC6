@@ -2,9 +2,9 @@ module number_font_selector(oColorIndex, iClock, iAddress, iValue);
     input iClock;
     input [3:0] iValue;
     input [10:0] iAddress;
-    output reg [15:0] oColorIndex;
+    output reg [5:0] oColorIndex;
 
-    wire [15:0] font_0_cidx_out, font_1_cidx_out, font_2_cidx_out, font_3_cidx_out, font_4_cidx_out, font_5_cidx_out, font_6_cidx_out, font_7_cidx_out, font_8_cidx_out, font_9_cidx_out;
+    wire [5:0] font_0_cidx_out, font_1_cidx_out, font_2_cidx_out, font_3_cidx_out, font_4_cidx_out, font_5_cidx_out, font_6_cidx_out, font_7_cidx_out, font_8_cidx_out, font_9_cidx_out;
 
     font_048_pixelmap font_0 (
         .address(iAddress),

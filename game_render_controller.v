@@ -69,20 +69,21 @@ module game_render_controller(oPixel, iClock, iAddress, iBirdY, iScore);
 	/** Score Number **/
 	localparam NUMBER_WIDTH = 24;
 	localparam NUMBER_HEIGHT = 44;
-	localparam SCORE_OFFSET_X = 10;
-	localparam SCORE_OFFSET_Y = 10;
-	localparam SCORE_MARGIN = 5;
+	localparam SCORE_OFFSET_X = 5;
+	localparam SCORE_OFFSET_Y = 5;
+	localparam SCORE_MARGIN = 2;
 	reg [15:0] score;
-	reg [3:0] score_digit;
+	reg [3:0] score_current_digit;
 
-	reg is_in_score_tens_area, is_in_score_ones_area;
+	reg is_in_score_digit1_area, is_in_score_digit2_area, is_in_score_digit3_area;
+	reg [1:0] score_digit_count;
 	reg [10:0] number_pidx_in;
 	wire [5:0] number_cidx_out;
 	number_font_selector num(
 		.oColorIndex(number_cidx_out),
 		.iClock(iClock),
 		.iAddress(number_pidx_in),
-		.iValue(score_digit)
+		.iValue(score_current_digit)
 	);
 
 	/** Address to Coordinate **/
@@ -117,35 +118,49 @@ module game_render_controller(oPixel, iClock, iAddress, iBirdY, iScore);
 
 		/** Bird **/
 		is_in_bird_area = (x >= ((SCREEN_WIDTH / 2) - (BIRD_WIDTH / 2)))
-							&& (x < ((SCREEN_WIDTH / 2) + (BIRD_WIDTH / 2))) 
-							&& (y >= iBirdY) 
-							&& (y < (iBirdY + BIRD_HEIGHT));
+							& (x < ((SCREEN_WIDTH / 2) + (BIRD_WIDTH / 2))) 
+							& (y >= iBirdY) 
+							& (y < (iBirdY + BIRD_HEIGHT));
 		bird_pidx_in = is_in_bird_area ? (x - ((SCREEN_WIDTH / 2) - (BIRD_WIDTH / 2))) + ((y - iBirdY) * BIRD_WIDTH) : 0;
 		bird_cidx_out = (bird_flap_state == 0) ? bird_0_cidx_out : ((bird_flap_state == 1) ? bird_1_cidx_out : bird_2_cidx_out);
 
 		/** Score **/
-		is_in_score_tens_area = (x >= SCORE_OFFSET_X)
-									&& (x < (SCORE_OFFSET_X + NUMBER_WIDTH))
-									&& (y >= SCORE_OFFSET_Y)
-									&& (y < (SCORE_OFFSET_Y + NUMBER_HEIGHT));
-		is_in_score_ones_area = (x >= (SCORE_OFFSET_X + NUMBER_WIDTH + SCORE_MARGIN))
-									&& (x < (SCORE_OFFSET_X + NUMBER_WIDTH + SCORE_MARGIN + NUMBER_WIDTH))
-									&& (y >= SCORE_OFFSET_Y)
-									&& (y < (SCORE_OFFSET_Y + NUMBER_HEIGHT));
-		score = iScore > 99 ? 99 : iScore;
-		score_digit = is_in_score_tens_area ? (score / 10) : (is_in_score_ones_area ? (score % 10) : 0);
-		number_pidx_in = is_in_score_tens_area
+		
+		is_in_score_digit1_area = (x >= SCORE_OFFSET_X)
+									& (x < (SCORE_OFFSET_X + NUMBER_WIDTH))
+									& (y >= SCORE_OFFSET_Y)
+									& (y < (SCORE_OFFSET_Y + NUMBER_HEIGHT));
+		is_in_score_digit2_area = (x >= (SCORE_OFFSET_X + NUMBER_WIDTH + SCORE_MARGIN))
+									& (x < (SCORE_OFFSET_X + NUMBER_WIDTH + SCORE_MARGIN + NUMBER_WIDTH))
+									& (y >= SCORE_OFFSET_Y)
+									& (y < (SCORE_OFFSET_Y + NUMBER_HEIGHT));
+		is_in_score_digit3_area = (x >= (SCORE_OFFSET_X + (NUMBER_WIDTH + SCORE_MARGIN) * 2))
+									& (x < (SCORE_OFFSET_X + (NUMBER_WIDTH + SCORE_MARGIN) * 2 + NUMBER_WIDTH))
+									& (y >= SCORE_OFFSET_Y)
+									& (y < (SCORE_OFFSET_Y + NUMBER_HEIGHT));
+		score = iScore > 999 ? 999 : iScore;
+		score_digit_count = score > 99 ? 3 : (score > 9 ? 2 : 1);
+		score_current_digit = is_in_score_digit1_area 
+								? score_digit_count == 3 ? score / 100 : (score_digit_count == 2 ? score / 10 : score)
+								: (is_in_score_digit2_area 
+									? score_digit_count == 3 ? (score % 100) / 10 : (score_digit_count == 2 ? score % 10 : 0)
+									: (is_in_score_digit3_area 
+										? score_digit_count == 3 ? score % 10 : 0
+										: 0));
+		number_pidx_in = is_in_score_digit1_area
 							? (x - SCORE_OFFSET_X) + ((y - SCORE_OFFSET_Y) * NUMBER_WIDTH) 
-							: (is_in_score_ones_area 
-								? (x - (SCORE_OFFSET_X + NUMBER_WIDTH + SCORE_MARGIN)) + ((y - SCORE_OFFSET_Y) * NUMBER_WIDTH) 
-								: 0);
+							: ((is_in_score_digit2_area & (score_digit_count >= 2))
+								? ((x - (SCORE_OFFSET_X + NUMBER_WIDTH + SCORE_MARGIN)) + ((y - SCORE_OFFSET_Y) * NUMBER_WIDTH))
+								: ((is_in_score_digit3_area & (score_digit_count >= 3))
+									? ((x - (SCORE_OFFSET_X + (NUMBER_WIDTH + SCORE_MARGIN) * 2)) + ((y - SCORE_OFFSET_Y) * NUMBER_WIDTH)) 
+									: 0));
 	end
 
 	/** Rendering Logic - Pixel Rendering **/
 	always @(posedge iClock) begin
 		color_cidx_in = (is_in_bird_area & (bird_cidx_out != 0)) 
 							? bird_cidx_out
-							: (((is_in_score_tens_area | is_in_score_ones_area) & (number_cidx_out != 0))
+							: (((is_in_score_digit1_area | is_in_score_digit2_area | is_in_score_digit3_area) & (number_cidx_out != 0))
 								? number_cidx_out 
 								: bg_cidx_out);
 	end
