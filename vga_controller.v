@@ -1,5 +1,5 @@
 module vga_controller(iRST_n, iVGA_CLK, oBLANK_n, oHS, oVS, b_data, g_data, r_data,
-						iBirdY, iScore);
+						ADDR, rgb_data_raw);
 
 	
 input iRST_n;
@@ -10,16 +10,13 @@ output reg oVS;
 output [7:0] b_data;
 output [7:0] g_data;  
 output [7:0] r_data;	
+output reg [18:0] ADDR;
+input [23:0] rgb_data_raw;
 
-input [9:0] iBirdY;
-input [15:0] iScore;
-			
-reg [18:0] ADDR;
-reg [23:0] bgr_data;
+reg [23:0] rgb_data;
 wire VGA_CLK_n;
 wire [7:0] index;
 wire [23:0] test_data, square_data;
-wire [23:0] bgr_data_raw;
 wire cBLANK_n,cHS,cVS,rst;
 
 assign rst = ~iRST_n;
@@ -42,43 +39,11 @@ begin
 	 ADDR<=ADDR+1;
 end
 
-/*
-//////////////////////////
-//////INDEX addr.
-
-img_data	img_data_inst (
-	.address ( ADDR ),
-	.clock ( VGA_CLK_n ),
-	.q ( index )
-	);
-	
-/////////////////////////
-//////Add switch-input logic here
-	
-//////Color table output
-img_index	img_index_inst (
-	.address ( index ),
-	.clock ( iVGA_CLK ),
-	.q ( bgr_data_raw)
-	);	
-//////
-
-*/
-
-/** Game Render Controller **/
-game_render_controller grc (
-	.oPixel(bgr_data_raw),
-	.iClock(iVGA_CLK),
-	.iAddress(ADDR),
-	.iBirdY(iBirdY),
-	.iScore(iScore)
-);
-
 //////latch valid data at falling edge;
-always@(posedge VGA_CLK_n) bgr_data <= bgr_data_raw;
-assign r_data = bgr_data[23:16];
-assign g_data = bgr_data[15:8];
-assign b_data = bgr_data[7:0]; 
+always@(posedge VGA_CLK_n) rgb_data <= rgb_data_raw;
+assign r_data = rgb_data[23:16];
+assign g_data = rgb_data[15:8];
+assign b_data = rgb_data[7:0]; 
 ///////////////////
 //////Delay the iHD, iVD,iDEN for one clock cycle;
 always@(negedge iVGA_CLK)

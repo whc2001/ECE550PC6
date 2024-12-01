@@ -118,6 +118,8 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 	
 		/** VGA controller **/
 	wire DLY_RST, VGA_CTRL_CLK, VGA_CLK, AUD_CTRL_CLK;
+	wire [18:0] ADDR;
+	wire [23:0] rgb_data_raw;
 	Reset_Delay r0 (.iCLK(clock),.oRESET(DLY_RST));
 	VGA_Audio_PLL pll	(.areset(~DLY_RST),.inclk0(clock),.c0(VGA_CTRL_CLK),.c1(AUD_CTRL_CLK),.c2(VGA_CLK));
 	vga_controller vga_ctrl(.iRST_n(DLY_RST),
@@ -128,10 +130,16 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 								.b_data(VGA_B),
 								.g_data(VGA_G),
 								.r_data(VGA_R),
-
+								.ADDR(ADDR),
+								.rgb_data_raw(rgb_data_raw)
+							);
+	game_render_controller renderer(.oPixel(rgb_data_raw), 
+								.iClock(VGA_CLK),
+								.iAddress(ADDR),
 								.iBirdY(bird_y),
 								.iScore(score)
-							);
+								);
+	
 
 	/** PROCESSOR **/
 	processor my_processor(
