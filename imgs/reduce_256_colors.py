@@ -41,6 +41,8 @@ def create_color_palette(pixels, n_colors=256):
         km.fit(far_pixels)
         additional_palette = km.cluster_centers_.astype(np.uint8)
         palette = np.unique(np.vstack([palette, additional_palette]), axis=0)
+        if i > 10:
+            break
 
     return palette
 

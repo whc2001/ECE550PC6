@@ -1,13 +1,15 @@
-module game_render_controller(oPixel, iClock, iAddress, iReset, iBirdY, iScore);
+module game_render_controller(oPixel, iClock, iAddress, iReset, iBirdY, iScore, iPipe1X, iPipe1Y, iPipe2X, iPipe2Y, iPipe3X, iPipe3Y);
 
 	localparam SCREEN_WIDTH = 640;
 	localparam SCREEN_HEIGHT = 480;
 
+	output [23:0] oPixel;
 	input [18:0] iAddress;  // 640*480 = 307200
 	input iClock, iReset;
 	input [9:0] iBirdY;
 	input [15:0] iScore;
-	output [23:0] oPixel;
+	input signed [10:0] iPipe1X, iPipe2X, iPipe3X;
+	input signed [9:0] iPipe1Y, iPipe2Y, iPipe3Y;
 
 	/** Color Mapper **/
 	reg [5:0] color_cidx_in;
@@ -29,7 +31,7 @@ module game_render_controller(oPixel, iClock, iAddress, iReset, iBirdY, iScore);
 	);
 	 
 	/** Background Scroll Timer **/
-	localparam BG_SCROLL_SPEED_DIVIDER = 25000;
+	localparam BG_SCROLL_SPEED_DIVIDER = 50000;
 	reg [31:0] bg_timer;
 	reg [8:0] bg_cur_x;
 	
@@ -57,14 +59,33 @@ module game_render_controller(oPixel, iClock, iAddress, iReset, iBirdY, iScore);
 	);
 
 	/** Bird Flapping Timer **/
-	localparam BIRD_FLAP_SPEED_DIVIDER = 150000;
+	localparam BIRD_FLAP_SPEED_DIVIDER = 300000;
 	reg [31:0] bird_flap_timer;
 	reg [1:0] bird_flap_state;
 
 	/** Pipe Pixel Mapper **/
 	localparam PIPE_WIDTH = 52;
-	localparam PIPE_HEIGHT = 320;
-	
+	localparam PIPE_HEIGHT = 380;
+	localparam PIPE_GAP_HEIGHT = 100;
+
+	reg signed [10:0] pipe_1_x, pipe_2_x, pipe_3_x;	// X is the left side of the gap between the pipes
+	reg signed [9:0] pipe_1_y, pipe_2_y, pipe_3_y;	// Y is the top of the gap between the pipes (bottom of the top pipe)
+	reg pipe_1_valid, pipe_2_valid, pipe_3_valid;
+	reg is_in_pipe_1_top_area, is_in_pipe_1_bottom_area, is_in_pipe_2_top_area, is_in_pipe_2_bottom_area, is_in_pipe_3_top_area, is_in_pipe_3_bottom_area;
+	reg [14:0] pipe_up_pidx_in;
+	wire [5:0] pipe_up_cidx_out;
+	reg [14:0] pipe_down_pidx_in;
+	wire [5:0] pipe_down_cidx_out;
+	pipe_up_pixelmap pipe_up (
+		.address(pipe_up_pidx_in),
+		.clock(~iClock),
+		.q(pipe_up_cidx_out)
+	);
+	pipe_down_pixelmap pipe_down (
+		.address(pipe_down_pidx_in),
+		.clock(~iClock),
+		.q(pipe_down_cidx_out)
+	);
 
 	/** Score Number **/
 	localparam NUMBER_WIDTH = 24;
@@ -118,7 +139,7 @@ module game_render_controller(oPixel, iClock, iAddress, iReset, iBirdY, iScore);
 	end
 	
 	/** Rendering Logic - Pixel Presenting **/
-	always @* begin
+	always @(*) begin
 		/** Background **/
 		bg_pidx_in = ((x + bg_cur_x) % BG_WIDTH) + (y * BG_WIDTH);
 
@@ -131,7 +152,6 @@ module game_render_controller(oPixel, iClock, iAddress, iReset, iBirdY, iScore);
 		bird_cidx_out = (bird_flap_state == 0) ? bird_0_cidx_out : ((bird_flap_state == 1) ? bird_1_cidx_out : bird_2_cidx_out);
 
 		/** Score **/
-		
 		is_in_score_digit1_area = (x >= SCORE_OFFSET_X)
 									& (x < (SCORE_OFFSET_X + NUMBER_WIDTH))
 									& (y >= SCORE_OFFSET_Y)
@@ -160,15 +180,86 @@ module game_render_controller(oPixel, iClock, iAddress, iReset, iBirdY, iScore);
 								: ((is_in_score_digit3_area & (score_digit_count >= 3))
 									? ((x - (SCORE_OFFSET_X + (NUMBER_WIDTH + SCORE_MARGIN) * 2)) + ((y - SCORE_OFFSET_Y) * NUMBER_WIDTH)) 
 									: 0));
+
+		/** Pipes **/
+		pipe_1_x = iPipe1X;
+		pipe_1_y = iPipe1Y;
+		pipe_2_x = iPipe2X;
+		pipe_2_y = iPipe2Y;
+		pipe_3_x = iPipe3X;
+		pipe_3_y = iPipe3Y;
+
+		pipe_1_valid = (pipe_1_x >= 0)
+							& (pipe_1_x < SCREEN_WIDTH)
+							& (pipe_1_y >= 0)
+							& (pipe_1_y < SCREEN_HEIGHT - PIPE_GAP_HEIGHT);
+		pipe_2_valid = (pipe_2_x >= 0)
+							& (pipe_2_x < SCREEN_WIDTH)
+							& (pipe_2_y >= 0)
+							& (pipe_2_y < SCREEN_HEIGHT - PIPE_GAP_HEIGHT);
+		pipe_3_valid = (pipe_3_x >= 0)
+							& (pipe_3_x < SCREEN_WIDTH)
+							& (pipe_3_y >= 0)
+							& (pipe_3_y < SCREEN_HEIGHT - PIPE_GAP_HEIGHT);
+
+		is_in_pipe_1_top_area = pipe_1_valid
+								& (x >= pipe_1_x)
+								& (x < pipe_1_x + PIPE_WIDTH)
+								& (y >= 0)
+								& (y < pipe_1_y);
+		is_in_pipe_2_top_area = pipe_2_valid
+								& (x >= pipe_2_x)
+								& (x < pipe_2_x + PIPE_WIDTH)
+								& (y >= 0)
+								& (y < pipe_2_y);
+		is_in_pipe_3_top_area = pipe_3_valid
+								& (x >= pipe_3_x)
+								& (x < pipe_3_x + PIPE_WIDTH)
+								& (y >= 0)
+								& (y < pipe_3_y);
+		is_in_pipe_1_bottom_area = pipe_1_valid
+								& (x >= pipe_1_x)
+								& (x < pipe_1_x + PIPE_WIDTH)
+								& (y >= pipe_1_y + PIPE_GAP_HEIGHT)
+								& (y < SCREEN_HEIGHT);
+		is_in_pipe_2_bottom_area = pipe_2_valid 
+								& (x >= pipe_2_x)
+								& (x < pipe_2_x + PIPE_WIDTH)
+								& (y >= pipe_2_y + PIPE_GAP_HEIGHT)
+								& (y < SCREEN_HEIGHT);
+		is_in_pipe_3_bottom_area = pipe_3_valid 
+								& (x >= pipe_3_x)
+								& (x < pipe_3_x + PIPE_WIDTH)
+								& (y >= pipe_3_y + PIPE_GAP_HEIGHT)
+								& (y < SCREEN_HEIGHT);
+
+		pipe_up_pidx_in = is_in_pipe_1_top_area
+							? ((x - pipe_1_x) + ((y + (PIPE_HEIGHT - pipe_1_y)) * PIPE_WIDTH))
+							: (is_in_pipe_2_top_area
+								? ((x - pipe_2_x) + ((y + (PIPE_HEIGHT - pipe_2_y)) * PIPE_WIDTH))
+								: (is_in_pipe_3_top_area
+									? ((x - pipe_3_x) + ((y + (PIPE_HEIGHT - pipe_3_y)) * PIPE_WIDTH))
+									: 0));
+		pipe_down_pidx_in = is_in_pipe_1_bottom_area
+							? ((x - pipe_1_x) + ((y - pipe_1_y - PIPE_GAP_HEIGHT) * PIPE_WIDTH))
+							: (is_in_pipe_2_bottom_area
+								? ((x - pipe_2_x) + ((y - pipe_2_y - PIPE_GAP_HEIGHT) * PIPE_WIDTH))
+								: (is_in_pipe_3_bottom_area
+									? ((x - pipe_3_x) + ((y - pipe_3_y - PIPE_GAP_HEIGHT) * PIPE_WIDTH))
+									: 0));
 	end
 
 	/** Rendering Logic - Pixel Rendering **/
 	always @(posedge iClock) begin
-		color_cidx_in = (is_in_bird_area & (bird_cidx_out != 0)) 
-							? bird_cidx_out
-							: (((is_in_score_digit1_area | is_in_score_digit2_area | is_in_score_digit3_area) & (number_cidx_out != 0))
-								? number_cidx_out 
-								: bg_cidx_out);
+		color_cidx_in = (((is_in_score_digit1_area | is_in_score_digit2_area | is_in_score_digit3_area) & (number_cidx_out != 0)) 
+					? number_cidx_out 
+					: (((is_in_pipe_1_top_area | is_in_pipe_2_top_area | is_in_pipe_3_top_area) & (pipe_up_cidx_out != 0))
+					? pipe_up_cidx_out
+					: (((is_in_pipe_1_bottom_area | is_in_pipe_2_bottom_area | is_in_pipe_3_bottom_area) & (pipe_down_cidx_out != 0))
+					? pipe_down_cidx_out
+					: ((is_in_bird_area & (bird_cidx_out != 0)) 
+					? bird_cidx_out
+					: bg_cidx_out))));
 	end
 
 endmodule

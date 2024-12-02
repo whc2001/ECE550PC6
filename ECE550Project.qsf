@@ -102,8 +102,9 @@ set_location_assignment PIN_G20 -to leds[5]
 set_location_assignment PIN_G22 -to leds[6]
 set_location_assignment PIN_G21 -to leds[7]
 set_location_assignment PIN_Y2 -to clock
-set_global_assignment -name VERILOG_FILE pipe_up_pixelmap.v
+set_location_assignment PIN_M23 -to resetn
 set_global_assignment -name VERILOG_FILE pipe_down_pixelmap.v
+set_global_assignment -name VERILOG_FILE pipe_up_pixelmap.v
 set_global_assignment -name VERILOG_FILE number_font_selector.v
 set_global_assignment -name VERILOG_FILE font_057_pixelmap.v
 set_global_assignment -name VERILOG_FILE font_056_pixelmap.v
@@ -120,11 +121,6 @@ set_global_assignment -name VERILOG_FILE bird2_1_pixelmap.v
 set_global_assignment -name VERILOG_FILE bird2_0_pixelmap.v
 set_global_assignment -name VERILOG_FILE bg_pixelmap.v
 set_global_assignment -name VERILOG_FILE color_map.v
-set_global_assignment -name MIF_FILE imgs/color_map.mif
-set_global_assignment -name MIF_FILE imgs/bird2_2_pixelmap.mif
-set_global_assignment -name MIF_FILE imgs/bird2_1_pixelmap.mif
-set_global_assignment -name MIF_FILE imgs/bird2_0_pixelmap.mif
-set_global_assignment -name MIF_FILE imgs/bg_pixelmap.mif
 set_global_assignment -name VERILOG_FILE test_pattern_generator.v
 set_global_assignment -name VERILOG_FILE Reset_Delay.v
 set_global_assignment -name VERILOG_FILE pll.v
@@ -147,5 +143,4 @@ set_global_assignment -name VERILOG_FILE reg_12bit.v
 set_global_assignment -name VERILOG_FILE skeleton_tb.v
 set_global_assignment -name VERILOG_FILE signext_17bit_32bit.v
 set_global_assignment -name VERILOG_FILE game_render_controller.v
-set_location_assignment PIN_M23 -to resetn
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

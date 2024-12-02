@@ -45,6 +45,7 @@ assign r_data = rgb_data[23:16];
 assign g_data = rgb_data[15:8];
 assign b_data = rgb_data[7:0]; 
 ///////////////////
+
 //////Delay the iHD, iVD,iDEN for one clock cycle;
 always@(negedge iVGA_CLK)
 begin
