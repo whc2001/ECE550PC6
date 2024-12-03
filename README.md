@@ -7,6 +7,7 @@
 - [ ] 计算柱子的x坐标和y坐标
 
 ## Specs
+- 显示元素的尺寸参考 [`game_render_controller.v`](game_render_controller.v) 中的 `localparam` 定义
 - 鸟的位置指鸟的左上角
   - 横向 `BIRD_WIDTH = 34` * 纵向 `BIRD_HEIGHT = 24`
   - 鸟的 X 永远是屏幕中心减去鸟的宽度的一半（`BIRD_X = (SCREEN_WIDTH / 2) - (BIRD_WIDTH / 2)`），Y 是可以任意移动
@@ -17,7 +18,7 @@
   - 当鸟整个碰撞箱的 X 在柱子空挡范围内 `BIRD_X + BIRD_WIDTH >= PIPE_X && BIRD_X < PIPE_X + PIPE_WIDTH` 的时候持续检测碰撞，能通过的区域水平 `[PIPE_X, PIPE_X + PIPE_WIDTH]`，垂直 `[PIPE_Y, PIPE_Y + PIPEPIPE_GAP_HEIGHT]`，不在这个范围内一概算撞上（包括鸟高出屏幕上边缘也撞）
   - 鸟移出柱子空挡的瞬间（或者飞过中间时）进行加分
   - 柱子移出屏幕左边（PIPE_X < -PIPE_WIDTH）后立即回到屏幕右边外侧进行循环使用
-  - 可能需要标记三个柱子哪个没飞过（飞过之后循环了）哪个已经飞过了，防止重复加分
+  - 可能需要寄存器标记三个柱子哪个没飞过（飞过之后循环了）哪个已经飞过了，防止重复加分
 
 # MIPS 新指令
 
