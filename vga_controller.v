@@ -15,8 +15,6 @@ input [23:0] rgb_data_raw;
 
 reg [23:0] rgb_data;
 wire VGA_CLK_n;
-wire [7:0] index;
-wire [23:0] test_data, square_data;
 wire cBLANK_n,cHS,cVS,rst;
 
 assign rst = ~iRST_n;

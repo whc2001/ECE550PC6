@@ -1,4 +1,7 @@
-module game_render_controller(oPixel, iClock, iAddress, iReset, iBirdY, iScore, iPipe1X, iPipe1Y, iPipe2X, iPipe2Y, iPipe3X, iPipe3Y);
+module game_render_controller(oPixel, iClock, iAddress, iReset,
+	iBirdY, iScore, 
+	iPipe1X, iPipe1Y, iPipe2X, iPipe2Y, iPipe3X, iPipe3Y,
+	);
 
 	localparam SCREEN_WIDTH = 640;
 	localparam SCREEN_HEIGHT = 480;
@@ -8,9 +11,9 @@ module game_render_controller(oPixel, iClock, iAddress, iReset, iBirdY, iScore, 
 	input iClock, iReset;
 	input [9:0] iBirdY;
 	input [15:0] iScore;
-	input signed [10:0] iPipe1X, iPipe2X, iPipe3X;
-	input signed [9:0] iPipe1Y, iPipe2Y, iPipe3Y;
-
+	input signed [16:0] iPipe1X, iPipe2X, iPipe3X;
+	input signed [16:0] iPipe1Y, iPipe2Y, iPipe3Y;
+	
 	/** Color Mapper **/
 	reg [5:0] color_cidx_in;
 	color_map cm (
@@ -26,7 +29,7 @@ module game_render_controller(oPixel, iClock, iAddress, iReset, iBirdY, iScore, 
 	wire [5:0] bg_cidx_out;
 	bg_pixelmap bg (
 		.address(bg_pidx_in),
-		.clock(iClock),
+		.clock(~iClock),
 		.q(bg_cidx_out)
 	);
 	 
@@ -44,17 +47,17 @@ module game_render_controller(oPixel, iClock, iAddress, iReset, iBirdY, iScore, 
 	reg [5:0] bird_cidx_out;
 	bird2_0_pixelmap bird_0 (
 		.address(bird_pidx_in),
-		.clock(iClock),
+		.clock(~iClock),
 		.q(bird_0_cidx_out)
 	);
 	bird2_1_pixelmap bird_1 (
 		.address(bird_pidx_in),
-		.clock(iClock),
+		.clock(~iClock),
 		.q(bird_1_cidx_out)
 	);
 	bird2_2_pixelmap bird_2 (
 		.address(bird_pidx_in),
-		.clock(iClock),
+		.clock(~iClock),
 		.q(bird_2_cidx_out)
 	);
 
@@ -68,8 +71,8 @@ module game_render_controller(oPixel, iClock, iAddress, iReset, iBirdY, iScore, 
 	localparam PIPE_HEIGHT = 380;
 	localparam PIPE_GAP_HEIGHT = 100;
 
-	reg signed [10:0] pipe_1_x, pipe_2_x, pipe_3_x;	// X is the left side of the gap between the pipes
-	reg signed [9:0] pipe_1_y, pipe_2_y, pipe_3_y;	// Y is the top of the gap between the pipes (bottom of the top pipe)
+	reg signed [16:0] pipe_1_x, pipe_2_x, pipe_3_x;	// X is the left side of the gap between the pipes
+	reg signed [16:0] pipe_1_y, pipe_2_y, pipe_3_y;	// Y is the top of the gap between the pipes (bottom of the top pipe)
 	reg pipe_1_valid, pipe_2_valid, pipe_3_valid;
 	reg is_in_pipe_1_top_area, is_in_pipe_1_bottom_area, is_in_pipe_2_top_area, is_in_pipe_2_bottom_area, is_in_pipe_3_top_area, is_in_pipe_3_bottom_area;
 	reg [14:0] pipe_up_pidx_in;
@@ -102,7 +105,7 @@ module game_render_controller(oPixel, iClock, iAddress, iReset, iBirdY, iScore, 
 	wire [5:0] number_cidx_out;
 	number_font_selector num(
 		.oColorIndex(number_cidx_out),
-		.iClock(iClock),
+		.iClock(~iClock),
 		.iAddress(number_pidx_in),
 		.iValue(score_current_digit)
 	);
@@ -111,7 +114,7 @@ module game_render_controller(oPixel, iClock, iAddress, iReset, iBirdY, iScore, 
 	wire [31:0] x, y;
 	assign x = iAddress % SCREEN_WIDTH;
 	assign y = iAddress / SCREEN_WIDTH;
-	
+
 	/** Rendering Logic - Timer Calculating **/
 	always @(posedge iClock) begin
 		/** Reset Logic **/
@@ -139,7 +142,7 @@ module game_render_controller(oPixel, iClock, iAddress, iReset, iBirdY, iScore, 
 	end
 	
 	/** Rendering Logic - Pixel Presenting **/
-	always @(*) begin
+	always @(iAddress) begin
 		/** Background **/
 		bg_pidx_in = ((x + bg_cur_x) % BG_WIDTH) + (y * BG_WIDTH);
 
@@ -189,49 +192,49 @@ module game_render_controller(oPixel, iClock, iAddress, iReset, iBirdY, iScore, 
 		pipe_3_x = iPipe3X;
 		pipe_3_y = iPipe3Y;
 
-		pipe_1_valid = (pipe_1_x >= 0)
+		pipe_1_valid = (pipe_1_x >= -PIPE_WIDTH)
 							& (pipe_1_x < SCREEN_WIDTH)
 							& (pipe_1_y >= 0)
 							& (pipe_1_y < SCREEN_HEIGHT - PIPE_GAP_HEIGHT);
-		pipe_2_valid = (pipe_2_x >= 0)
+		pipe_2_valid = (pipe_2_x >= -PIPE_WIDTH)
 							& (pipe_2_x < SCREEN_WIDTH)
 							& (pipe_2_y >= 0)
 							& (pipe_2_y < SCREEN_HEIGHT - PIPE_GAP_HEIGHT);
-		pipe_3_valid = (pipe_3_x >= 0)
+		pipe_3_valid = (pipe_3_x >= -PIPE_WIDTH)
 							& (pipe_3_x < SCREEN_WIDTH)
 							& (pipe_3_y >= 0)
 							& (pipe_3_y < SCREEN_HEIGHT - PIPE_GAP_HEIGHT);
 
 		is_in_pipe_1_top_area = pipe_1_valid
-								& (x >= pipe_1_x)
-								& (x < pipe_1_x + PIPE_WIDTH)
-								& (y >= 0)
-								& (y < pipe_1_y);
+								& ($signed(x) >= pipe_1_x)
+								& ($signed(x) < pipe_1_x + PIPE_WIDTH)
+								& ($signed(y) >= 0)
+								& ($signed(y) < pipe_1_y);
 		is_in_pipe_2_top_area = pipe_2_valid
-								& (x >= pipe_2_x)
-								& (x < pipe_2_x + PIPE_WIDTH)
-								& (y >= 0)
-								& (y < pipe_2_y);
+								& ($signed(x) >= pipe_2_x)
+								& ($signed(x) < pipe_2_x + PIPE_WIDTH)
+								& ($signed(y) >= 0)
+								& ($signed(y) < pipe_2_y);
 		is_in_pipe_3_top_area = pipe_3_valid
-								& (x >= pipe_3_x)
-								& (x < pipe_3_x + PIPE_WIDTH)
-								& (y >= 0)
-								& (y < pipe_3_y);
+								& ($signed(x) >= pipe_3_x)
+								& ($signed(x) < pipe_3_x + PIPE_WIDTH)
+								& ($signed(y) >= 0)
+								& ($signed(y) < pipe_3_y);
 		is_in_pipe_1_bottom_area = pipe_1_valid
-								& (x >= pipe_1_x)
-								& (x < pipe_1_x + PIPE_WIDTH)
-								& (y >= pipe_1_y + PIPE_GAP_HEIGHT)
-								& (y < SCREEN_HEIGHT);
+								& ($signed(x) >= pipe_1_x)
+								& ($signed(x) < pipe_1_x + PIPE_WIDTH)
+								& ($signed(y) >= pipe_1_y + PIPE_GAP_HEIGHT)
+								& ($signed(y) < SCREEN_HEIGHT);
 		is_in_pipe_2_bottom_area = pipe_2_valid 
-								& (x >= pipe_2_x)
-								& (x < pipe_2_x + PIPE_WIDTH)
-								& (y >= pipe_2_y + PIPE_GAP_HEIGHT)
-								& (y < SCREEN_HEIGHT);
+								& ($signed(x) >= pipe_2_x)
+								& ($signed(x) < pipe_2_x + PIPE_WIDTH)
+								& ($signed(y) >= pipe_2_y + PIPE_GAP_HEIGHT)
+								& ($signed(y) < SCREEN_HEIGHT);
 		is_in_pipe_3_bottom_area = pipe_3_valid 
-								& (x >= pipe_3_x)
-								& (x < pipe_3_x + PIPE_WIDTH)
-								& (y >= pipe_3_y + PIPE_GAP_HEIGHT)
-								& (y < SCREEN_HEIGHT);
+								& ($signed(x) >= pipe_3_x)
+								& ($signed(x) < pipe_3_x + PIPE_WIDTH)
+								& ($signed(y) >= pipe_3_y + PIPE_GAP_HEIGHT)
+								& ($signed(y) < SCREEN_HEIGHT);
 
 		pipe_up_pidx_in = is_in_pipe_1_top_area
 							? ((x - pipe_1_x) + ((y + (PIPE_HEIGHT - pipe_1_y)) * PIPE_WIDTH))
@@ -261,5 +264,4 @@ module game_render_controller(oPixel, iClock, iAddress, iReset, iBirdY, iScore, 
 					? bird_cidx_out
 					: bg_cidx_out))));
 	end
-
 endmodule

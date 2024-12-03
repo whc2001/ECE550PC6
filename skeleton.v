@@ -98,6 +98,12 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 	reg reset_space_state;
 	PS2_Interface myps2(clock, ~reset, ps2_clock, ps2_data, space_state, reset_space_state);
 	
+	/** Test Logic **/
+	reg signed [16:0] pipe_1_x, pipe_2_x, pipe_3_x;	// X is the left side of the gap between the pipes
+	reg signed [16:0] pipe_1_y, pipe_2_y, pipe_3_y;	// Y is the top of the gap between the pipes (bottom of the top pipe)
+	localparam PIPE_SPEED_DIVIDER = 500000;
+	reg [31:0] pipe_timer;
+
 	/** VGA controller **/
 	wire DLY_RST, VGA_CTRL_CLK, VGA_CLK, AUD_CTRL_CLK;
 	wire [18:0] ADDR;
@@ -121,12 +127,12 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 								.iReset(reset),
 								.iBirdY(bird_y),
 								.iScore(score),
-								.iPipe1X(100),	// 245
-								.iPipe1Y(100),
-								.iPipe2X(300),	// 300
-								.iPipe2Y(200),
-								.iPipe3X(500),	// 360
-								.iPipe3Y(300)
+								.iPipe1X(pipe_1_x),	// 245
+								.iPipe1Y(pipe_1_y),
+								.iPipe2X(pipe_2_x),	// 300
+								.iPipe2Y(pipe_2_y),
+								.iPipe3X(pipe_3_x),	// 360
+								.iPipe3Y(pipe_3_y),
 								);
 
 	/** PROCESSOR **/
@@ -158,10 +164,16 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 	
 	// Test logic
 	always @(posedge clock) begin
-		if (reset == 1'b1) begin
+		if (reset | ~DLY_RST) begin
 			score = 0;
 			bird_y = 0;
 			dir = 0;
+			pipe_1_x = 161;
+			pipe_2_x = 161 * 2 + 52;
+			pipe_3_x = 161 * 3 + 52 * 2;
+			pipe_1_y = 100;
+			pipe_2_y = 200;
+			pipe_3_y = 300;
 		end
 		
 		if (space_state == 2'd1 && !reset_space_state) begin
@@ -177,6 +189,27 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 		end
 		else begin
 			reset_space_state = 1'b0;
+		end
+		
+		pipe_timer <= pipe_timer + 1;
+		if (pipe_timer >= PIPE_SPEED_DIVIDER) begin
+			pipe_timer <= 0;
+			
+			pipe_1_x = pipe_1_x - 1;
+			if (pipe_1_x < -52) begin
+				pipe_1_x = 640;
+			end
+			
+			pipe_2_x = pipe_2_x - 1;
+			if (pipe_2_x < -52) begin
+				pipe_2_x = 640;
+			end
+			
+			pipe_3_x = pipe_3_x - 1;
+			if (pipe_3_x < -52) begin
+				pipe_3_x = 640;
+			end
+			
 		end
 	end
 	
