@@ -1,6 +1,14 @@
 module game_render_controller(oPixel, iClock, iAddress, iReset,
-	iBirdY, iScore, 
-	iPipe1X, iPipe1Y, iPipe2X, iPipe2Y, iPipe3X, iPipe3Y,
+	iWScreen, iScreen,
+	iWBGScroll, iBGScroll,
+	iWBirdY, iBirdY,
+	iWScore, iScore, 
+	iWPipe1X, iPipe1X,
+	iWPipe1Y, iPipe1Y,
+	iWPipe2X, iPipe2X,
+	iWPipe2Y, iPipe2Y,
+	iWPipe3X, iPipe3X,
+	iWPipe3Y, iPipe3Y,
 	);
 
 	localparam SCREEN_WIDTH = 640;
@@ -9,7 +17,10 @@ module game_render_controller(oPixel, iClock, iAddress, iReset,
 	output [23:0] oPixel;
 	input [18:0] iAddress;  // 640*480 = 307200
 	input iClock, iReset;
-	input [9:0] iBirdY;
+	input iWScreen, iWBGScroll, iWBirdY, iWScore, iWPipe1X, iWPipe1Y, iWPipe2X, iWPipe2Y, iWPipe3X, iWPipe3Y;
+	input iBGScroll;
+	input [1:0] iScreen;
+	input signed [16:0] iBirdY;
 	input [15:0] iScore;
 	input signed [16:0] iPipe1X, iPipe2X, iPipe3X;
 	input signed [16:0] iPipe1Y, iPipe2Y, iPipe3Y;
@@ -35,12 +46,14 @@ module game_render_controller(oPixel, iClock, iAddress, iReset,
 	 
 	/** Background Scroll Timer **/
 	localparam BG_SCROLL_SPEED_DIVIDER = 50000;
+	reg bg_scroll;
 	reg [31:0] bg_timer;
 	reg [8:0] bg_cur_x;
 	
 	/** Bird Pixel Mapper **/
 	localparam BIRD_WIDTH = 34;
 	localparam BIRD_HEIGHT = 24;
+	reg signed [16:0] bird_y;
 	reg is_in_bird_area;
 	reg [9:0] bird_pidx_in; 
 	wire [5:0] bird_0_cidx_out, bird_1_cidx_out, bird_2_cidx_out;
@@ -70,7 +83,6 @@ module game_render_controller(oPixel, iClock, iAddress, iReset,
 	localparam PIPE_WIDTH = 52;
 	localparam PIPE_HEIGHT = 380;
 	localparam PIPE_GAP_HEIGHT = 100;
-
 	reg signed [16:0] pipe_1_x, pipe_2_x, pipe_3_x;	// X is the left side of the gap between the pipes
 	reg signed [16:0] pipe_1_y, pipe_2_y, pipe_3_y;	// Y is the top of the gap between the pipes (bottom of the top pipe)
 	reg pipe_1_valid, pipe_2_valid, pipe_3_valid;
@@ -98,7 +110,6 @@ module game_render_controller(oPixel, iClock, iAddress, iReset,
 	localparam SCORE_MARGIN = 2;
 	reg [15:0] score;
 	reg [3:0] score_current_digit;
-
 	reg is_in_score_digit1_area, is_in_score_digit2_area, is_in_score_digit3_area;
 	reg [1:0] score_digit_count;
 	reg [10:0] number_pidx_in;
@@ -109,6 +120,54 @@ module game_render_controller(oPixel, iClock, iAddress, iReset,
 		.iAddress(number_pidx_in),
 		.iValue(score_current_digit)
 	);
+	
+	/** Main Title **/
+	localparam TITLE_WIDTH = 178;
+	localparam TITLE_HEIGHT = 48;
+	localparam TITLE_OFFSET_X = (SCREEN_WIDTH / 2) - (TITLE_WIDTH / 2);
+	localparam TITLE_OFFSET_Y = (SCREEN_HEIGHT / 2) - (TITLE_HEIGHT / 2) - 100;
+	reg is_in_title_area;
+	reg [13:0] title_pidx_in;
+	wire [5:0] title_cidx_out;
+	title_pixelmap title (
+		.address(title_pidx_in),
+		.clock(~iClock),
+		.q(title_cidx_out)
+	);
+
+	/** Play Button **/
+	localparam PLAY_BUTTON_WIDTH = 116;
+	localparam PLAY_BUTTON_HEIGHT = 70;
+	localparam PLAY_BUTTON_OFFSET_X = (SCREEN_WIDTH / 2) - (PLAY_BUTTON_WIDTH / 2);
+	localparam PLAY_BUTTON_OFFSET_Y = (SCREEN_HEIGHT / 2) - (PLAY_BUTTON_HEIGHT / 2) + 100;
+	reg is_in_play_button_area;
+	reg [12:0] play_button_pidx_in;
+	wire [5:0] play_button_cidx_out;
+	button_play_pixelmap play_button (
+		.address(play_button_pidx_in),
+		.clock(~iClock),
+		.q(play_button_cidx_out)
+	);
+
+	/** Game Over **/
+	localparam GAME_OVER_WIDTH = 204;
+	localparam GAME_OVER_HEIGHT = 54;
+	localparam GAME_OVER_OFFSET_X = (SCREEN_WIDTH / 2) - (GAME_OVER_WIDTH / 2);
+	localparam GAME_OVER_OFFSET_Y = (SCREEN_HEIGHT / 2) - (GAME_OVER_HEIGHT / 2);
+	reg is_in_game_over_area;
+	reg [13:0] game_over_pidx_in;
+	wire [5:0] game_over_cidx_out;
+	text_game_over_pixelmap game_over (
+		.address(game_over_pidx_in),
+		.clock(~iClock),
+		.q(game_over_cidx_out)
+	);
+
+	/** Current Screen **/
+	localparam SCREEN_TITLE = 0;
+	localparam SCREEN_PLAY = 1;
+	localparam SCREEN_GAME_OVER = 2;
+	reg [1:0] screen;
 
 	/** Address to Coordinate **/
 	wire [31:0] x, y;
@@ -119,17 +178,62 @@ module game_render_controller(oPixel, iClock, iAddress, iReset,
 	always @(posedge iClock) begin
 		/** Reset Logic **/
 		if (iReset == 1'b1) begin
+			screen = SCREEN_TITLE;
+			bg_scroll = 0;
+			bird_y = (SCREEN_HEIGHT / 2) - (BIRD_HEIGHT / 2);
+			score = 0;
+			pipe_1_x = SCREEN_WIDTH * 2;
+			pipe_1_y = 0;
+			pipe_2_x = SCREEN_WIDTH * 2;
+			pipe_2_y = 0;
+			pipe_3_x = SCREEN_WIDTH * 2;
+			pipe_3_y = 0;
 			bg_cur_x = 0;
 			bird_flap_state = 0;
 		end
-		
+		/** Write Register Logic **/
+		else begin
+			if (iWScreen == 1'b1) begin
+				screen = iScreen;
+			end
+			if (iWBGScroll == 1'b1) begin
+				bg_scroll = iBGScroll;
+			end
+			if (iWBirdY == 1'b1) begin
+				bird_y = iBirdY;
+			end
+			if (iWScore == 1'b1) begin
+				score = iScore > 999 ? 999 : iScore;
+			end
+			if (iWPipe1X == 1'b1) begin
+				pipe_1_x = iPipe1X;
+			end
+			if (iWPipe1Y == 1'b1) begin
+				pipe_1_y = iPipe1Y;
+			end
+			if (iWPipe2X == 1'b1) begin
+				pipe_2_x = iPipe2X;
+			end
+			if (iWPipe2Y == 1'b1) begin
+				pipe_2_y = iPipe2Y;
+			end
+			if (iWPipe3X == 1'b1) begin
+				pipe_3_x = iPipe3X;
+			end
+			if (iWPipe3Y == 1'b1) begin
+				pipe_3_y = iPipe3Y;
+			end
+		end
+
 		/** Per Frame Logic **/
 		if (iAddress == 0) begin
 			/** Background Scrolling **/
-			bg_timer <= bg_timer + 1;
-			if (bg_timer >= BG_SCROLL_SPEED_DIVIDER) begin
-				bg_timer <= 0;
-				bg_cur_x <= (bg_cur_x + 1) % BG_WIDTH;
+			if (bg_scroll == 1'b1) begin
+				bg_timer <= bg_timer + 1;
+				if (bg_timer >= BG_SCROLL_SPEED_DIVIDER) begin
+					bg_timer <= 0;
+					bg_cur_x <= (bg_cur_x + 1) % BG_WIDTH;
+				end
 			end
 
 			/** Bird Flapping **/
@@ -142,16 +246,16 @@ module game_render_controller(oPixel, iClock, iAddress, iReset,
 	end
 	
 	/** Rendering Logic - Pixel Presenting **/
-	always @(iAddress) begin
+	always @(*) begin
 		/** Background **/
 		bg_pidx_in = ((x + bg_cur_x) % BG_WIDTH) + (y * BG_WIDTH);
 
 		/** Bird **/
 		is_in_bird_area = (x >= ((SCREEN_WIDTH / 2) - (BIRD_WIDTH / 2)))
 							& (x < ((SCREEN_WIDTH / 2) + (BIRD_WIDTH / 2))) 
-							& (y >= iBirdY) 
-							& (y < (iBirdY + BIRD_HEIGHT));
-		bird_pidx_in = is_in_bird_area ? (x - ((SCREEN_WIDTH / 2) - (BIRD_WIDTH / 2))) + ((y - iBirdY) * BIRD_WIDTH) : 0;
+							& (y >= bird_y) 
+							& (y < (bird_y + BIRD_HEIGHT));
+		bird_pidx_in = is_in_bird_area ? (x - ((SCREEN_WIDTH / 2) - (BIRD_WIDTH / 2))) + ((y - bird_y) * BIRD_WIDTH) : 0;
 		bird_cidx_out = (bird_flap_state == 0) ? bird_0_cidx_out : ((bird_flap_state == 1) ? bird_1_cidx_out : bird_2_cidx_out);
 
 		/** Score **/
@@ -167,7 +271,6 @@ module game_render_controller(oPixel, iClock, iAddress, iReset,
 									& (x < (SCORE_OFFSET_X + (NUMBER_WIDTH + SCORE_MARGIN) * 2 + NUMBER_WIDTH))
 									& (y >= SCORE_OFFSET_Y)
 									& (y < (SCORE_OFFSET_Y + NUMBER_HEIGHT));
-		score = iScore > 999 ? 999 : iScore;
 		score_digit_count = score > 99 ? 3 : (score > 9 ? 2 : 1);
 		score_current_digit = is_in_score_digit1_area 
 								? score_digit_count == 3 ? score / 100 : (score_digit_count == 2 ? score / 10 : score)
@@ -185,13 +288,6 @@ module game_render_controller(oPixel, iClock, iAddress, iReset,
 									: 0));
 
 		/** Pipes **/
-		pipe_1_x = iPipe1X;
-		pipe_1_y = iPipe1Y;
-		pipe_2_x = iPipe2X;
-		pipe_2_y = iPipe2Y;
-		pipe_3_x = iPipe3X;
-		pipe_3_y = iPipe3Y;
-
 		pipe_1_valid = (pipe_1_x >= -PIPE_WIDTH)
 							& (pipe_1_x < SCREEN_WIDTH)
 							& (pipe_1_y >= 0)
@@ -250,11 +346,42 @@ module game_render_controller(oPixel, iClock, iAddress, iReset,
 								: (is_in_pipe_3_bottom_area
 									? ((x - pipe_3_x) + ((y - pipe_3_y - PIPE_GAP_HEIGHT) * PIPE_WIDTH))
 									: 0));
+
+		/** Title **/
+		is_in_title_area = (x >= TITLE_OFFSET_X)
+							& (x < (TITLE_OFFSET_X + TITLE_WIDTH))
+							& (y >= TITLE_OFFSET_Y)
+							& (y < (TITLE_OFFSET_Y + TITLE_HEIGHT));
+		title_pidx_in = is_in_title_area ? (x - TITLE_OFFSET_X) + ((y - TITLE_OFFSET_Y) * TITLE_WIDTH) : 0;
+
+		/** Play Button **/
+		is_in_play_button_area = (x >= PLAY_BUTTON_OFFSET_X)
+								& (x < (PLAY_BUTTON_OFFSET_X + PLAY_BUTTON_WIDTH))
+								& (y >= PLAY_BUTTON_OFFSET_Y)
+								& (y < (PLAY_BUTTON_OFFSET_Y + PLAY_BUTTON_HEIGHT));
+		play_button_pidx_in = is_in_play_button_area ? (x - PLAY_BUTTON_OFFSET_X) + ((y - PLAY_BUTTON_OFFSET_Y) * PLAY_BUTTON_WIDTH) : 0;
+
+		/** Game Over **/
+		is_in_game_over_area = (x >= GAME_OVER_OFFSET_X)
+								& (x < (GAME_OVER_OFFSET_X + GAME_OVER_WIDTH))
+								& (y >= GAME_OVER_OFFSET_Y)
+								& (y < (GAME_OVER_OFFSET_Y + GAME_OVER_HEIGHT));
+		game_over_pidx_in = is_in_game_over_area ? (x - GAME_OVER_OFFSET_X) + ((y - GAME_OVER_OFFSET_Y) * GAME_OVER_WIDTH) : 0;
 	end
 
 	/** Rendering Logic - Pixel Rendering **/
 	always @(posedge iClock) begin
-		color_cidx_in = (((is_in_score_digit1_area | is_in_score_digit2_area | is_in_score_digit3_area) & (number_cidx_out != 0)) 
+		// switch by screen
+		case (screen)
+			SCREEN_TITLE: begin
+				color_cidx_in = ((is_in_title_area & (title_cidx_out != 0))
+					? title_cidx_out
+					: ((is_in_play_button_area & (play_button_cidx_out != 0))
+					? play_button_cidx_out
+					: bg_cidx_out));
+			end
+			SCREEN_PLAY: begin
+				color_cidx_in = (((is_in_score_digit1_area | is_in_score_digit2_area | is_in_score_digit3_area) & (number_cidx_out != 0)) 
 					? number_cidx_out 
 					: (((is_in_pipe_1_top_area | is_in_pipe_2_top_area | is_in_pipe_3_top_area) & (pipe_up_cidx_out != 0))
 					? pipe_up_cidx_out
@@ -263,5 +390,23 @@ module game_render_controller(oPixel, iClock, iAddress, iReset,
 					: ((is_in_bird_area & (bird_cidx_out != 0)) 
 					? bird_cidx_out
 					: bg_cidx_out))));
+			end
+			SCREEN_GAME_OVER: begin
+				color_cidx_in = ((is_in_game_over_area & (game_over_cidx_out != 0))
+					? game_over_cidx_out
+					: (((is_in_score_digit1_area | is_in_score_digit2_area | is_in_score_digit3_area) & (number_cidx_out != 0)) 
+					? number_cidx_out 
+					: (((is_in_pipe_1_top_area | is_in_pipe_2_top_area | is_in_pipe_3_top_area) & (pipe_up_cidx_out != 0))
+					? pipe_up_cidx_out
+					: (((is_in_pipe_1_bottom_area | is_in_pipe_2_bottom_area | is_in_pipe_3_bottom_area) & (pipe_down_cidx_out != 0))
+					? pipe_down_cidx_out
+					: ((is_in_bird_area & (bird_cidx_out != 0)) 
+					? bird_cidx_out
+					: bg_cidx_out)))));
+			end
+			default: begin
+				color_cidx_in = 0;
+			end
+		endcase
 	end
 endmodule

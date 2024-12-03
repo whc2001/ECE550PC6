@@ -89,9 +89,7 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 
 
 	/** Test **/
-	reg dir;
-	reg [9:0] bird_y;
-	reg [15:0] score;
+	reg [1:0] screen;
 	
 	/** PS2 Keyboard **/
 	wire [1:0] space_state;
@@ -125,14 +123,24 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 								.iClock(clock),
 								.iAddress(ADDR),
 								.iReset(reset),
-								.iBirdY(bird_y),
-								.iScore(score),
-								.iPipe1X(pipe_1_x),	// 245
-								.iPipe1Y(pipe_1_y),
-								.iPipe2X(pipe_2_x),	// 300
-								.iPipe2Y(pipe_2_y),
-								.iPipe3X(pipe_3_x),	// 360
-								.iPipe3Y(pipe_3_y),
+								.iWScreen(1'b1),
+								.iScreen(screen),
+								.iWBGScroll(1'b1),
+								.iBGScroll(screen == 1),
+								.iWBirdY(1'b0),
+								.iWScore(0),
+								.iWPipe1X(1'b1),
+								.iPipe1X(160),
+								.iWPipe1Y(1'b1),
+								.iPipe1Y(100),
+								.iWPipe2X(1'b1),
+								.iPipe2X(320),
+								.iWPipe2Y(1'b1),
+								.iPipe2Y(200),
+								.iWPipe3X(1'b1),
+								.iPipe3X(480),
+								.iWPipe3Y(1'b1),
+								.iPipe3Y(300),
 								);
 
 	/** PROCESSOR **/
@@ -165,22 +173,12 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 	// Test logic
 	always @(posedge clock) begin
 		if (reset | ~DLY_RST) begin
-			score = 0;
-			bird_y = 0;
-			dir = 0;
-			pipe_1_x = 161;
-			pipe_2_x = 161 * 2 + 52;
-			pipe_3_x = 161 * 3 + 52 * 2;
-			pipe_1_y = 100;
-			pipe_2_y = 200;
-			pipe_3_y = 300;
+			screen = 0;
 		end
 		
 		if (space_state == 2'd1 && !reset_space_state) begin
 			led_buf = 8'b1;
-			score = score + 1;
-			dir = (bird_y <= 0 | bird_y >= 456) ? ~dir : dir;
-			bird_y = dir ? bird_y + 10 : bird_y - 10;
+			screen = (screen + 1) % 3;
 			reset_space_state = 1'b1;
 		end
 		else if (space_state == 2'd2 && !reset_space_state) begin
@@ -189,27 +187,6 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 		end
 		else begin
 			reset_space_state = 1'b0;
-		end
-		
-		pipe_timer <= pipe_timer + 1;
-		if (pipe_timer >= PIPE_SPEED_DIVIDER) begin
-			pipe_timer <= 0;
-			
-			pipe_1_x = pipe_1_x - 1;
-			if (pipe_1_x < -52) begin
-				pipe_1_x = 640;
-			end
-			
-			pipe_2_x = pipe_2_x - 1;
-			if (pipe_2_x < -52) begin
-				pipe_2_x = 640;
-			end
-			
-			pipe_3_x = pipe_3_x - 1;
-			if (pipe_3_x < -52) begin
-				pipe_3_x = 640;
-			end
-			
 		end
 	end
 	
