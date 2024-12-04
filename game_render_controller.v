@@ -1,14 +1,11 @@
 module game_render_controller(oPixel, iClock, iAddress, iReset,
-	iWScreen, iScreen,
-	iWBGScroll, iBGScroll,
-	iWBirdY, iBirdY,
-	iWScore, iScore, 
-	iWPipe1X, iPipe1X,
-	iWPipe1Y, iPipe1Y,
-	iWPipe2X, iPipe2X,
-	iWPipe2Y, iPipe2Y,
-	iWPipe3X, iPipe3X,
-	iWPipe3Y, iPipe3Y,
+	iScreen,
+	iBGScroll,
+	iBirdY,
+	iScore, 
+	iPipe1X, iPipe1Y,
+	iPipe2X, iPipe2Y,
+	iPipe3X, iPipe3Y,
 	);
 
 	localparam SCREEN_WIDTH = 640;
@@ -17,7 +14,6 @@ module game_render_controller(oPixel, iClock, iAddress, iReset,
 	output [23:0] oPixel;
 	input [18:0] iAddress;  // 640*480 = 307200
 	input iClock, iReset;
-	input iWScreen, iWBGScroll, iWBirdY, iWScore, iWPipe1X, iWPipe1Y, iWPipe2X, iWPipe2Y, iWPipe3X, iWPipe3Y;
 	input iBGScroll;
 	input [1:0] iScreen;
 	input signed [16:0] iBirdY;
@@ -53,7 +49,6 @@ module game_render_controller(oPixel, iClock, iAddress, iReset,
 	/** Bird Pixel Mapper **/
 	localparam BIRD_WIDTH = 34;
 	localparam BIRD_HEIGHT = 24;
-	reg signed [16:0] bird_y;
 	reg is_in_bird_area;
 	reg [9:0] bird_pidx_in; 
 	wire [5:0] bird_0_cidx_out, bird_1_cidx_out, bird_2_cidx_out;
@@ -83,8 +78,6 @@ module game_render_controller(oPixel, iClock, iAddress, iReset,
 	localparam PIPE_WIDTH = 52;
 	localparam PIPE_HEIGHT = 380;
 	localparam PIPE_GAP_HEIGHT = 100;
-	reg signed [16:0] pipe_1_x, pipe_2_x, pipe_3_x;	// X is the left side of the gap between the pipes
-	reg signed [16:0] pipe_1_y, pipe_2_y, pipe_3_y;	// Y is the top of the gap between the pipes (bottom of the top pipe)
 	reg pipe_1_valid, pipe_2_valid, pipe_3_valid;
 	reg is_in_pipe_1_top_area, is_in_pipe_1_bottom_area, is_in_pipe_2_top_area, is_in_pipe_2_bottom_area, is_in_pipe_3_top_area, is_in_pipe_3_bottom_area;
 	reg [14:0] pipe_up_pidx_in;
@@ -108,7 +101,6 @@ module game_render_controller(oPixel, iClock, iAddress, iReset,
 	localparam SCORE_OFFSET_X = 5;
 	localparam SCORE_OFFSET_Y = 5;
 	localparam SCORE_MARGIN = 2;
-	reg [15:0] score;
 	reg [3:0] score_current_digit;
 	reg is_in_score_digit1_area, is_in_score_digit2_area, is_in_score_digit3_area;
 	reg [1:0] score_digit_count;
@@ -167,8 +159,7 @@ module game_render_controller(oPixel, iClock, iAddress, iReset,
 	localparam SCREEN_TITLE = 0;
 	localparam SCREEN_PLAY = 1;
 	localparam SCREEN_GAME_OVER = 2;
-	reg [1:0] screen;
-
+	
 	/** Address to Coordinate **/
 	wire [31:0] x, y;
 	assign x = iAddress % SCREEN_WIDTH;
@@ -178,57 +169,14 @@ module game_render_controller(oPixel, iClock, iAddress, iReset,
 	always @(posedge iClock) begin
 		/** Reset Logic **/
 		if (iReset == 1'b1) begin
-			screen <= SCREEN_TITLE;
-			bg_scroll <= 0;
-			bird_y <= (SCREEN_HEIGHT / 2) - (BIRD_HEIGHT / 2);
-			score <= 0;
-			pipe_1_x <= SCREEN_WIDTH * 2;
-			pipe_1_y <= 0;
-			pipe_2_x <= SCREEN_WIDTH * 2;
-			pipe_2_y <= 0;
-			pipe_3_x <= SCREEN_WIDTH * 2;
-			pipe_3_y <= 0;
 			bg_cur_x <= 0;
 			bird_flap_state <= 0;
-		end
-		/** Write Register Logic **/
-		else begin
-			if (iWScreen == 1'b1) begin
-				screen <= iScreen;
-			end
-			if (iWBGScroll == 1'b1) begin
-				bg_scroll <= iBGScroll;
-			end
-			if (iWBirdY == 1'b1) begin
-				bird_y <= iBirdY;
-			end
-			if (iWScore == 1'b1) begin
-				score <= iScore > 999 ? 999 : iScore;
-			end
-			if (iWPipe1X == 1'b1) begin
-				pipe_1_x <= iPipe1X;
-			end
-			if (iWPipe1Y == 1'b1) begin
-				pipe_1_y <= iPipe1Y;
-			end
-			if (iWPipe2X == 1'b1) begin
-				pipe_2_x <= iPipe2X;
-			end
-			if (iWPipe2Y == 1'b1) begin
-				pipe_2_y <= iPipe2Y;
-			end
-			if (iWPipe3X == 1'b1) begin
-				pipe_3_x <= iPipe3X;
-			end
-			if (iWPipe3Y == 1'b1) begin
-				pipe_3_y <= iPipe3Y;
-			end
 		end
 
 		/** Per Frame Logic **/
 		if (iAddress == 0) begin
 			/** Background Scrolling **/
-			if (bg_scroll == 1'b1) begin
+			if (iBGScroll) begin
 				bg_timer <= bg_timer + 1;
 				if (bg_timer >= BG_SCROLL_SPEED_DIVIDER) begin
 					bg_timer <= 0;
@@ -253,9 +201,9 @@ module game_render_controller(oPixel, iClock, iAddress, iReset,
 		/** Bird **/
 		is_in_bird_area <= (x >= ((SCREEN_WIDTH / 2) - (BIRD_WIDTH / 2)))
 							& (x < ((SCREEN_WIDTH / 2) + (BIRD_WIDTH / 2))) 
-							& (y >= bird_y) 
-							& (y < (bird_y + BIRD_HEIGHT));
-		bird_pidx_in <= is_in_bird_area ? (x - ((SCREEN_WIDTH / 2) - (BIRD_WIDTH / 2))) + ((y - bird_y) * BIRD_WIDTH) : 0;
+							& (y >= iBirdY) 
+							& (y < (iBirdY + BIRD_HEIGHT));
+		bird_pidx_in <= is_in_bird_area ? (x - ((SCREEN_WIDTH / 2) - (BIRD_WIDTH / 2))) + ((y - iBirdY) * BIRD_WIDTH) : 0;
 		bird_cidx_out <= (bird_flap_state == 0) ? bird_0_cidx_out : ((bird_flap_state == 1) ? bird_1_cidx_out : bird_2_cidx_out);
 
 		/** Score **/
@@ -271,13 +219,13 @@ module game_render_controller(oPixel, iClock, iAddress, iReset,
 									& (x < (SCORE_OFFSET_X + (NUMBER_WIDTH + SCORE_MARGIN) * 2 + NUMBER_WIDTH))
 									& (y >= SCORE_OFFSET_Y)
 									& (y < (SCORE_OFFSET_Y + NUMBER_HEIGHT));
-		score_digit_count <= score > 99 ? 3 : (score > 9 ? 2 : 1);
+		score_digit_count <= iScore > 99 ? 3 : (iScore > 9 ? 2 : 1);
 		score_current_digit <= is_in_score_digit1_area 
-								? score_digit_count == 3 ? score / 100 : (score_digit_count == 2 ? score / 10 : score)
+								? score_digit_count == 3 ? iScore / 100 : (score_digit_count == 2 ? iScore / 10 : iScore)
 								: (is_in_score_digit2_area 
-									? score_digit_count == 3 ? (score % 100) / 10 : (score_digit_count == 2 ? score % 10 : 0)
+									? score_digit_count == 3 ? (iScore % 100) / 10 : (score_digit_count == 2 ? iScore % 10 : 0)
 									: (is_in_score_digit3_area 
-										? score_digit_count == 3 ? score % 10 : 0
+										? score_digit_count == 3 ? iScore % 10 : 0
 										: 0));
 		number_pidx_in <= is_in_score_digit1_area
 							? (x - SCORE_OFFSET_X) + ((y - SCORE_OFFSET_Y) * NUMBER_WIDTH) 
@@ -288,63 +236,63 @@ module game_render_controller(oPixel, iClock, iAddress, iReset,
 									: 0));
 
 		/** Pipes **/
-		pipe_1_valid <= (pipe_1_x >= -PIPE_WIDTH)
-							& (pipe_1_x < SCREEN_WIDTH)
-							& (pipe_1_y >= 0)
-							& (pipe_1_y < SCREEN_HEIGHT - PIPE_GAP_HEIGHT);
-		pipe_2_valid <= (pipe_2_x >= -PIPE_WIDTH)
-							& (pipe_2_x < SCREEN_WIDTH)
-							& (pipe_2_y >= 0)
-							& (pipe_2_y < SCREEN_HEIGHT - PIPE_GAP_HEIGHT);
-		pipe_3_valid <= (pipe_3_x >= -PIPE_WIDTH)
-							& (pipe_3_x < SCREEN_WIDTH)
-							& (pipe_3_y >= 0)
-							& (pipe_3_y < SCREEN_HEIGHT - PIPE_GAP_HEIGHT);
+		pipe_1_valid <= (iPipe1X >= -PIPE_WIDTH)
+							& (iPipe1X < SCREEN_WIDTH)
+							& (iPipe1Y >= 0)
+							& (iPipe1Y < SCREEN_HEIGHT - PIPE_GAP_HEIGHT);
+		pipe_2_valid <= (iPipe2X >= -PIPE_WIDTH)
+							& (iPipe2X < SCREEN_WIDTH)
+							& (iPipe2Y >= 0)
+							& (iPipe2Y < SCREEN_HEIGHT - PIPE_GAP_HEIGHT);
+		pipe_3_valid <= (iPipe3X >= -PIPE_WIDTH)
+							& (iPipe3X < SCREEN_WIDTH)
+							& (iPipe3Y >= 0)
+							& (iPipe3Y < SCREEN_HEIGHT - PIPE_GAP_HEIGHT);
 
 		is_in_pipe_1_top_area <= pipe_1_valid
-								& ($signed(x) >= pipe_1_x)
-								& ($signed(x) < pipe_1_x + PIPE_WIDTH)
+								& ($signed(x) >= iPipe1X)
+								& ($signed(x) < iPipe1X + PIPE_WIDTH)
 								& ($signed(y) >= 0)
-								& ($signed(y) < pipe_1_y);
+								& ($signed(y) < iPipe1Y);
 		is_in_pipe_2_top_area <= pipe_2_valid
-								& ($signed(x) >= pipe_2_x)
-								& ($signed(x) < pipe_2_x + PIPE_WIDTH)
+								& ($signed(x) >= iPipe2X)
+								& ($signed(x) < iPipe2X + PIPE_WIDTH)
 								& ($signed(y) >= 0)
-								& ($signed(y) < pipe_2_y);
+								& ($signed(y) < iPipe2Y);
 		is_in_pipe_3_top_area <= pipe_3_valid
-								& ($signed(x) >= pipe_3_x)
-								& ($signed(x) < pipe_3_x + PIPE_WIDTH)
+								& ($signed(x) >= iPipe3X)
+								& ($signed(x) < iPipe3X + PIPE_WIDTH)
 								& ($signed(y) >= 0)
-								& ($signed(y) < pipe_3_y);
+								& ($signed(y) < iPipe3Y);
 		is_in_pipe_1_bottom_area <= pipe_1_valid
-								& ($signed(x) >= pipe_1_x)
-								& ($signed(x) < pipe_1_x + PIPE_WIDTH)
-								& ($signed(y) >= pipe_1_y + PIPE_GAP_HEIGHT)
+								& ($signed(x) >= iPipe1X)
+								& ($signed(x) < iPipe1X + PIPE_WIDTH)
+								& ($signed(y) >= iPipe1Y + PIPE_GAP_HEIGHT)
 								& ($signed(y) < SCREEN_HEIGHT);
 		is_in_pipe_2_bottom_area <= pipe_2_valid 
-								& ($signed(x) >= pipe_2_x)
-								& ($signed(x) < pipe_2_x + PIPE_WIDTH)
-								& ($signed(y) >= pipe_2_y + PIPE_GAP_HEIGHT)
+								& ($signed(x) >= iPipe2X)
+								& ($signed(x) < iPipe2X + PIPE_WIDTH)
+								& ($signed(y) >= iPipe2Y + PIPE_GAP_HEIGHT)
 								& ($signed(y) < SCREEN_HEIGHT);
 		is_in_pipe_3_bottom_area <= pipe_3_valid 
-								& ($signed(x) >= pipe_3_x)
-								& ($signed(x) < pipe_3_x + PIPE_WIDTH)
-								& ($signed(y) >= pipe_3_y + PIPE_GAP_HEIGHT)
+								& ($signed(x) >= iPipe3X)
+								& ($signed(x) < iPipe3X + PIPE_WIDTH)
+								& ($signed(y) >= iPipe3Y + PIPE_GAP_HEIGHT)
 								& ($signed(y) < SCREEN_HEIGHT);
 
 		pipe_up_pidx_in <= is_in_pipe_1_top_area
-							? ((x - pipe_1_x) + ((y + (PIPE_HEIGHT - pipe_1_y)) * PIPE_WIDTH))
+							? ((x - iPipe1X) + ((y + (PIPE_HEIGHT - iPipe1Y)) * PIPE_WIDTH))
 							: (is_in_pipe_2_top_area
-								? ((x - pipe_2_x) + ((y + (PIPE_HEIGHT - pipe_2_y)) * PIPE_WIDTH))
+								? ((x - iPipe2X) + ((y + (PIPE_HEIGHT - iPipe2Y)) * PIPE_WIDTH))
 								: (is_in_pipe_3_top_area
-									? ((x - pipe_3_x) + ((y + (PIPE_HEIGHT - pipe_3_y)) * PIPE_WIDTH))
+									? ((x - iPipe3X) + ((y + (PIPE_HEIGHT - iPipe3Y)) * PIPE_WIDTH))
 									: 0));
 		pipe_down_pidx_in <= is_in_pipe_1_bottom_area
-							? ((x - pipe_1_x) + ((y - pipe_1_y - PIPE_GAP_HEIGHT) * PIPE_WIDTH))
+							? ((x - iPipe1X) + ((y - iPipe1Y - PIPE_GAP_HEIGHT) * PIPE_WIDTH))
 							: (is_in_pipe_2_bottom_area
-								? ((x - pipe_2_x) + ((y - pipe_2_y - PIPE_GAP_HEIGHT) * PIPE_WIDTH))
+								? ((x - iPipe2X) + ((y - iPipe2Y - PIPE_GAP_HEIGHT) * PIPE_WIDTH))
 								: (is_in_pipe_3_bottom_area
-									? ((x - pipe_3_x) + ((y - pipe_3_y - PIPE_GAP_HEIGHT) * PIPE_WIDTH))
+									? ((x - iPipe3X) + ((y - iPipe3Y - PIPE_GAP_HEIGHT) * PIPE_WIDTH))
 									: 0));
 
 		/** Title **/
@@ -372,7 +320,7 @@ module game_render_controller(oPixel, iClock, iAddress, iReset,
 	/** Rendering Logic - Pixel Rendering **/
 	always @(posedge iClock) begin
 		// switch by screen
-		case (screen)
+		case (iScreen)
 			SCREEN_TITLE: begin
 				color_cidx_in <= ((is_in_title_area & (title_cidx_out != 0))
 					? title_cidx_out

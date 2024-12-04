@@ -95,8 +95,6 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 	wire [31:0] random;
 	reg random_reset;
 	pseudo_random_generator(random, clock, random_reset, seed);
-	reg [31:0] rt;
-	localparam RT_DIV = 5000000;
 	
 	/** PS2 Keyboard **/
 	wire [1:0] space_state;
@@ -124,23 +122,15 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 								.iClock(clock),
 								.iAddress(ADDR),
 								.iReset(reset),
-								.iWScreen(1'b1),
 								.iScreen(screen),
-								.iWBGScroll(1'b1),
 								.iBGScroll(screen == 1),
-								.iWBirdY(1'b0),
-								.iWScore(0),
-								.iWPipe1X(1'b1),
+								.iBirdY(240 - 24),
+								.iScore(123),
 								.iPipe1X(160),
-								.iWPipe1Y(1'b1),
 								.iPipe1Y(100),
-								.iWPipe2X(1'b1),
 								.iPipe2X(320),
-								.iWPipe2Y(1'b1),
 								.iPipe2Y(200),
-								.iWPipe3X(1'b1),
 								.iPipe3X(480),
-								.iWPipe3Y(1'b1),
 								.iPipe3Y(300),
 								);
 
@@ -175,16 +165,9 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 		if (reset | ~DLY_RST) begin
 			screen <= 0;
 			seed <= 0;
-			rt <= 0;
 		end
 
 		seed <= seed + 1;
-
-		rt <= rt + 1;
-		if (rt >= RT_DIV) begin
-			rt <= 0;
-			led_buf <= random[12:5];
-		end
 		
 		if (space_state == 2'd1 && !reset_space_state) begin
 			if (screen == 0)
