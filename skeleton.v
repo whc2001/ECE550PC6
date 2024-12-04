@@ -87,20 +87,21 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 		data_readRegB
 	);
 
-
-	/** Test **/
+	/** Registers **/
 	reg [1:0] screen;
+
+	/** Random **/
+	reg [31:0] seed;
+	wire [31:0] random;
+	reg random_reset;
+	pseudo_random_generator(random, clock, random_reset, seed);
+	reg [31:0] rt;
+	localparam RT_DIV = 5000000;
 	
 	/** PS2 Keyboard **/
 	wire [1:0] space_state;
 	reg reset_space_state;
 	PS2_Interface myps2(clock, ~reset, ps2_clock, ps2_data, space_state, reset_space_state);
-	
-	/** Test Logic **/
-	reg signed [16:0] pipe_1_x, pipe_2_x, pipe_3_x;	// X is the left side of the gap between the pipes
-	reg signed [16:0] pipe_1_y, pipe_2_y, pipe_3_y;	// Y is the top of the gap between the pipes (bottom of the top pipe)
-	localparam PIPE_SPEED_DIVIDER = 500000;
-	reg [31:0] pipe_timer;
 
 	/** VGA controller **/
 	wire DLY_RST, VGA_CTRL_CLK, VGA_CLK, AUD_CTRL_CLK;
@@ -169,24 +170,34 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 		data_readRegB,				  // I: Data from port B of regfile
 
 	);
-	
-	// Test logic
+
 	always @(posedge clock) begin
 		if (reset | ~DLY_RST) begin
-			screen = 0;
+			screen <= 0;
+			seed <= 0;
+			rt <= 0;
+		end
+
+		seed <= seed + 1;
+
+		rt <= rt + 1;
+		if (rt >= RT_DIV) begin
+			rt <= 0;
+			led_buf <= random[12:5];
 		end
 		
 		if (space_state == 2'd1 && !reset_space_state) begin
-			led_buf = 8'b1;
-			screen = (screen + 1) % 3;
-			reset_space_state = 1'b1;
+			if (screen == 0)
+				random_reset <= 1'b1;
+			screen <= (screen + 1) % 3;
+			reset_space_state <= 1'b1;
 		end
 		else if (space_state == 2'd2 && !reset_space_state) begin
-			led_buf = 8'b0;
-			reset_space_state = 1'b1;
+			reset_space_state <= 1'b1;
 		end
 		else begin
-			reset_space_state = 1'b0;
+			reset_space_state <= 1'b0;
+			random_reset <= 1'b0;
 		end
 	end
 	
