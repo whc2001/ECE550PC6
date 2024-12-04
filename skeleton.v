@@ -28,10 +28,11 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 	output VGA_CLK, VGA_HS, VGA_VS, VGA_BLANK, VGA_SYNC;
 	output [7:0] VGA_R, VGA_G, VGA_B;
 	
-	/** HW Reset **/
+	/** Reset Logic **/
 	wire reset;
-	assign reset = ~resetn;
-	
+	Reset_Delay r0 (.iCLK(clock),.oRESET(DLY_RST));
+	assign reset = (~resetn) | (~DLY_RST);
+
 	/** Debug LEDs **/
 	reg [7:0]	led_buf = 8'h00;
 	assign leds = led_buf;
@@ -95,6 +96,15 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 	wire [31:0] random;
 	reg random_reset;
 	pseudo_random_generator(random, clock, random_reset, seed);
+
+	/** Game Logic **/
+	wire [16:0] pipe_1_x, pipe_1_y, pipe_2_x, pipe_2_y, pipe_3_x, pipe_3_y;
+	game_logic_controller glc(
+    clock, reset,
+    random,
+    screen,
+	pipe_1_x, pipe_1_y, pipe_2_x, pipe_2_y, pipe_3_x, pipe_3_y
+	);
 	
 	/** PS2 Keyboard **/
 	wire [1:0] space_state;
@@ -105,9 +115,8 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 	wire DLY_RST, VGA_CTRL_CLK, VGA_CLK, AUD_CTRL_CLK;
 	wire [18:0] ADDR;
 	wire [23:0] rgb_data_raw;
-	Reset_Delay r0 (.iCLK(clock),.oRESET(DLY_RST));
 	VGA_Audio_PLL pll (.areset(~DLY_RST),.inclk0(clock),.c0(VGA_CTRL_CLK),.c1(AUD_CTRL_CLK),.c2(VGA_CLK));
-	vga_controller vga_ctrl(.iRST_n(DLY_RST & resetn),	// Low enabled
+	vga_controller vga_ctrl(.iRST_n(~reset),
 								.iVGA_CLK(VGA_CLK),
 								.oBLANK_n(VGA_BLANK),
 								.oHS(VGA_HS),
@@ -126,12 +135,12 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 								.iBGScroll(screen == 1),
 								.iBirdY(240 - 24),
 								.iScore(123),
-								.iPipe1X(160),
-								.iPipe1Y(100),
-								.iPipe2X(320),
-								.iPipe2Y(200),
-								.iPipe3X(480),
-								.iPipe3Y(300),
+								.iPipe1X(pipe_1_x),
+								.iPipe1Y(pipe_1_y),
+								.iPipe2X(pipe_2_x),
+								.iPipe2Y(pipe_2_y),
+								.iPipe3X(pipe_3_x),
+								.iPipe3Y(pipe_3_y)
 								);
 
 	/** PROCESSOR **/
@@ -162,7 +171,7 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 	);
 
 	always @(posedge clock) begin
-		if (reset | ~DLY_RST) begin
+		if (reset) begin
 			screen <= 0;
 			seed <= 0;
 		end
