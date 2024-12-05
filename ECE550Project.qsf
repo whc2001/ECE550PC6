@@ -103,6 +103,7 @@ set_location_assignment PIN_G22 -to leds[6]
 set_location_assignment PIN_G21 -to leds[7]
 set_location_assignment PIN_Y2 -to clock
 set_location_assignment PIN_M23 -to resetn
+set_global_assignment -name VERILOG_FILE game_logic_controller.v
 set_global_assignment -name VERILOG_FILE pseudo_random_generator.v
 set_global_assignment -name VERILOG_FILE title_pixelmap.v
 set_global_assignment -name VERILOG_FILE text_game_over_pixelmap.v

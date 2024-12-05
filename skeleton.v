@@ -103,7 +103,7 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
     clock, reset,
     random,
     screen,
-	pipe_1_x, pipe_1_y, pipe_2_x, pipe_2_y, pipe_3_x, pipe_3_y
+	pipe_1_x, pipe_1_y, pipe_2_x, pipe_2_y, pipe_3_x, pipe_3_y,
 	);
 	
 	/** PS2 Keyboard **/
@@ -134,7 +134,7 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 								.iScreen(screen),
 								.iBGScroll(screen == 1),
 								.iBirdY(240 - 24),
-								.iScore(123),
+								.iScore(test),
 								.iPipe1X(pipe_1_x),
 								.iPipe1Y(pipe_1_y),
 								.iPipe2X(pipe_2_x),

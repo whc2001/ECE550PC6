@@ -219,13 +219,13 @@ module game_render_controller(oPixel, iClock, iAddress, iReset,
 									& (x < (SCORE_OFFSET_X + (NUMBER_WIDTH + SCORE_MARGIN) * 2 + NUMBER_WIDTH))
 									& (y >= SCORE_OFFSET_Y)
 									& (y < (SCORE_OFFSET_Y + NUMBER_HEIGHT));
-		score_digit_count <= iScore > 99 ? 3 : (iScore > 9 ? 2 : 1);
+		score_digit_count <= (iScore > 99) ? 3 : ((iScore > 9) ? 2 : 1);
 		score_current_digit <= is_in_score_digit1_area 
-								? score_digit_count == 3 ? iScore / 100 : (score_digit_count == 2 ? iScore / 10 : iScore)
+								? score_digit_count == 3 ? ((iScore / 100) % 10) : (score_digit_count == 2 ? ((iScore / 10) % 10) : iScore)
 								: (is_in_score_digit2_area 
-									? score_digit_count == 3 ? (iScore % 100) / 10 : (score_digit_count == 2 ? iScore % 10 : 0)
+									? score_digit_count == 3 ? ((iScore / 10) % 10) : (score_digit_count == 2 ? (iScore % 10) : 0)
 									: (is_in_score_digit3_area 
-										? score_digit_count == 3 ? iScore % 10 : 0
+										? score_digit_count == 3 ? (iScore % 10) : 0
 										: 0));
 		number_pidx_in <= is_in_score_digit1_area
 							? (x - SCORE_OFFSET_X) + ((y - SCORE_OFFSET_Y) * NUMBER_WIDTH) 
