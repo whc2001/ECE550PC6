@@ -35,14 +35,15 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 
 	/** Debug LEDs **/
 	reg [7:0]	led_buf = 8'h00;
-	assign leds = led_buf;
-	
-	/** Init Clock **/
+
+	/** Clock **/
+	wire ps2ctrl_clock, game_clock;
 	assign imem_clock = ~clock;
 	assign dmem_clock = clock;
 	clock_divider_quarter div1(regfile_clock, clock, reset);
 	clock_divider_quarter div2(processor_clock, clock, reset);
-
+	clock_divider_quarter div3(ps2ctrl_clock, clock, reset);
+	clock_divider_quarter div4(game_clock, clock, reset);
 
 	/** IMEM **/
 	// Figure out how to generate a Quartus syncram component and commit the generated verilog file.
@@ -89,27 +90,31 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 	);
 
 	/** Registers **/
-	reg [1:0] screen;
+	reg [1:0] game_state;
+	reg [15:0] bird_y;
+	reg [15:0] score;
+	wire w_game_state, w_bird_y, w_score;
+	wire [31:0] val_out;
 
 	/** Random **/
 	reg [31:0] seed;
 	wire [31:0] random;
-	reg random_reset;
+	wire random_reset;
 	pseudo_random_generator(random, clock, random_reset, seed);
 
 	/** Game Logic **/
 	wire [16:0] pipe_1_x, pipe_1_y, pipe_2_x, pipe_2_y, pipe_3_x, pipe_3_y;
 	game_logic_controller glc(
-    clock, reset,
-    random,
-    screen,
-	pipe_1_x, pipe_1_y, pipe_2_x, pipe_2_y, pipe_3_x, pipe_3_y,
+		game_clock, reset,
+		random,
+		game_state,
+		pipe_1_x, pipe_1_y, pipe_2_x, pipe_2_y, pipe_3_x, pipe_3_y,
 	);
 	
 	/** PS2 Keyboard **/
 	wire [1:0] space_state;
-	reg reset_space_state;
-	PS2_Interface myps2(clock, ~reset, ps2_clock, ps2_data, space_state, reset_space_state);
+	wire reset_space_state;
+	PS2_Interface myps2(ps2ctrl_clock, ~reset, ps2_clock, ps2_data, space_state, reset_space_state);
 
 	/** VGA controller **/
 	wire DLY_RST, VGA_CTRL_CLK, VGA_CLK, AUD_CTRL_CLK;
@@ -131,10 +136,10 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 								.iClock(clock),
 								.iAddress(ADDR),
 								.iReset(reset),
-								.iScreen(screen),
-								.iBGScroll(screen == 1),
-								.iBirdY(240 - 24),
-								.iScore(test),
+								.iScreen(game_state),
+								.iBGScroll(game_state == 1),
+								.iBirdY(bird_y),
+								.iScore(score),
 								.iPipe1X(pipe_1_x),
 								.iPipe1Y(pipe_1_y),
 								.iPipe2X(pipe_2_x),
@@ -168,28 +173,44 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 		data_readRegA,				 // I: Data from port A of regfile
 		data_readRegB,				  // I: Data from port B of regfile
 
+		space_state,
+		reset_space_state,
+
+		random_reset,
+
+		w_game_state,
+		w_bird_y,
+		w_score,
+		val_out,
 	);
 
 	always @(posedge clock) begin
 		if (reset) begin
-			screen <= 0;
+			game_state <= 0;
+			bird_y <= 0;
+			score <= 0;
 			seed <= 0;
 		end
 
-		seed <= seed + 1;
-		
-		if (space_state == 2'd1 && !reset_space_state) begin
-			if (screen == 0)
-				random_reset <= 1'b1;
-			screen <= (screen + 1) % 3;
-			reset_space_state <= 1'b1;
-		end
-		else if (space_state == 2'd2 && !reset_space_state) begin
-			reset_space_state <= 1'b1;
-		end
 		else begin
-			reset_space_state <= 1'b0;
-			random_reset <= 1'b0;
+			seed <= seed + 1;
+
+			if(w_game_state) game_state <= val_out;
+			if(w_bird_y) bird_y <= val_out;
+			if(w_score) score <= val_out;
+		// if (space_state == 2'd1 && !reset_space_state) begin
+		// 	if (screen == 0)
+		// 		random_reset <= 1'b1;
+		// 	screen <= (screen + 1) % 3;
+		// 	reset_space_state <= 1'b1;
+		// end
+		// else if (space_state == 2'd2 && !reset_space_state) begin
+		// 	reset_space_state <= 1'b1;
+		// end
+		// else begin
+		// 	reset_space_state <= 1'b0;
+		// 	random_reset <= 1'b0;
+		// end
 		end
 	end
 	

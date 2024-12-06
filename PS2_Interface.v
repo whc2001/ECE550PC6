@@ -8,7 +8,7 @@ module PS2_Interface(inclock, resetn, ps2_clock, ps2_data, space_state, reset_sp
 	wire [7:0] received_data;
 	wire received_data_en;
 	reg actual_space_pressed, release_armed;
-
+	
 	localparam RELEASE_PREFIX = 8'hF0;
 	localparam SPACE_SCANCODE = 8'h29;
 
@@ -20,9 +20,6 @@ module PS2_Interface(inclock, resetn, ps2_clock, ps2_data, space_state, reset_sp
 		if (!resetn) begin
 			actual_space_pressed <= 1'b0;
 			release_armed <= 1'b0;
-			space_state <= IDLE;
-		end
-		else if (reset_space_state) begin
 			space_state <= IDLE;
 		end
 		else if (received_data_en) begin
@@ -44,6 +41,9 @@ module PS2_Interface(inclock, resetn, ps2_clock, ps2_data, space_state, reset_sp
 			else begin
 				release_armed <= 1'b0;
 			end
+		end
+		else if (reset_space_state) begin
+			space_state <= IDLE;
 		end
 	end
 

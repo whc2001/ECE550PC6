@@ -70,6 +70,23 @@ module processor(
     data_writeReg,                  // O: Data to write to for regfile
     data_readRegA,                  // I: Data from port A of regfile
     data_readRegB,                   // I: Data from port B of regfile
+
+	space_state,
+	reset_space_state,
+
+	random_reseed,
+
+	w_game_state,
+	w_bird_y,
+	w_score,
+	val_out,
+	
+	pipe_1_x,
+	pipe_1_y,
+	pipe_2_x,
+	pipe_2_y,
+	pipe_3_x,
+	pipe_3_y,
 );
 
     // Control signals
@@ -92,7 +109,16 @@ module processor(
     input [31:0] data_readRegA, data_readRegB;
 	 
 	 // PS2 Keyboard
+	 input [1:0] space_state;
+	 output reset_space_state;
 
+	 // Random Number Generator
+	 output random_reseed;
+
+	 // Game Logic
+	 output w_game_state, w_bird_y, w_score;
+	 output [31:0] val_out;
+	 input [15:0] pipe_1_x, pipe_1_y, pipe_2_x, pipe_2_y, pipe_3_x, pipe_3_y;
 	 
 	 /*** PC wires ***/
 	 wire [11:0] pc_in, pc_out;
@@ -113,6 +139,17 @@ module processor(
 	 wire blt_type = ~opcode[4] & ~opcode[3] & opcode[2] & opcode[1] & ~opcode[0];
 	 wire bex_type = opcode[4] & ~opcode[3] & opcode[2] & opcode[1] & ~opcode[0];
 	 wire setx_type = opcode[4] & ~opcode[3] & opcode[2] & ~opcode[1] & opcode[0];
+	 wire pkey_type = opcode[4] & opcode[3] & opcode[2] & opcode[1] & opcode[0];
+	 wire rsed_type = opcode[4] & opcode[3] & ~opcode[2] & ~opcode[1] & ~opcode[0];
+	 wire ssta_type = opcode[4] & opcode[3] & opcode[2] & ~opcode[1] & ~opcode[0];
+	 wire spos_type = opcode[4] & opcode[3] & opcode[2] & ~opcode[1] & opcode[0];
+	 wire sscr_type = opcode[4] & opcode[3] & opcode[2] & opcode[1] & ~opcode[0];
+	 wire pobx1_type = ~opcode[4] & opcode[3] & ~opcode[2] & ~opcode[1] & ~opcode[0];
+	 wire pobx2_type = ~opcode[4] & opcode[3] & ~opcode[2] & ~opcode[1] & opcode[0];
+	 wire pobx3_type = ~opcode[4] & opcode[3] & ~opcode[2] & opcode[1] & ~opcode[0];
+	 wire poby1_type = ~opcode[4] & opcode[3] & opcode[2] & ~opcode[1] & ~opcode[0];
+	 wire poby2_type = ~opcode[4] & opcode[3] & opcode[2] & ~opcode[1] & opcode[0];
+	 wire poby3_type = ~opcode[4] & opcode[3] & opcode[2] & opcode[1] & ~opcode[0];
 	 // Common shorthands
 	 wire [4:0] rd = q_imem[26:22];
 	 wire [4:0] rs = q_imem[21:17];
@@ -147,11 +184,11 @@ module processor(
 	 assign bex_should_jump = bex_type & alu_ne;
 	 
 	 /*** RegFile Operation ***/
-	 assign ctrl_readRegA = bex_type ? 5'd30 : ((bne_type | blt_type | jr_type) ? rd : rs);
+	 assign ctrl_readRegA = (ssta_type | spos_type | sscr_type) ? rd : (bex_type ? 5'd30 : ((bne_type | blt_type | jr_type) ? rd : rs));
 	 assign ctrl_readRegB = (bne_type | blt_type) ? rs : (sw_type ? rd : (arith_r_type ? r_rt : r_rt));	// If SW, read value of rd, otherwise for later
-	 assign ctrl_writeReg = jal_type ? 5'd31 : (lw_type ? rd : ((alu_should_ovf | setx_type) ? 5'd30 : rd));	// If JAL, r31; If LW, write to rd
-	 assign data_writeReg = jal_type ? {20'd0, pc_next} : (lw_type ? q_dmem : (alu_should_ovf ? alu_ovf_code : (setx_type ? {5'd0, ji_t} : alu_result)));	// If JAL, pc + 1; If LW, read from DMEM
-	 assign ctrl_writeEnable = arith_r_type | arith_i_type | lw_type | jal_type | setx_type;
+	 assign ctrl_writeReg = (pobx1_type | pobx2_type | pobx3_type | poby1_type | poby2_type | poby3_type) ? rd : (pkey_type ? rd : (jal_type ? 5'd31 : (lw_type ? rd : ((alu_should_ovf | setx_type) ? 5'd30 : rd))));	// If JAL, r31; If LW, write to rd
+	 assign data_writeReg = pobx1_type ? pipe_1_x : poby1_type ? pipe_1_y : pobx2_type ? pipe_2_x : poby2_type ? pipe_2_y : pobx3_type ? pipe_3_x : poby3_type ? pipe_3_y : (pkey_type ? {30'd0, space_state} : (jal_type ? {20'd0, pc_next} : (lw_type ? q_dmem : (alu_should_ovf ? alu_ovf_code : (setx_type ? {5'd0, ji_t} : alu_result)))));	// If JAL, pc + 1; If LW, read from DMEM
+	 assign ctrl_writeEnable = (pobx1_type | pobx2_type | pobx3_type | poby1_type | poby2_type | poby3_type) | pkey_type | arith_r_type | arith_i_type | lw_type | jal_type | setx_type;
 	 
 	 /*** DMEM Operation ***/
 	 assign address_dmem = alu_result;
@@ -163,5 +200,16 @@ module processor(
 	 alu pc_inc_alu(.data_operandA({20'b0, pc_out}), .data_operandB(32'd1), .ctrl_ALUopcode(5'd0), .data_result(pc_next));
 	 alu pc_branch_alu(.data_operandA({20'b0, pc_next}), .data_operandB({15'b0, i_imm}), .ctrl_ALUopcode(5'd0), .data_result(pc_branch));
 	 assign pc_in = (jal_type | j_type | bex_should_jump) ? ji_t : ((bne_should_jump | blt_should_jump) ? pc_branch : (jr_type ? data_readRegA : pc_next));	// changelater for JMP
-	 
+
+	 /*** Keyboard ***/
+	 assign reset_space_state = pkey_type;
+
+	 /*** RNG ***/
+	 assign random_reseed = rsed_type;
+
+	 /*** Game Logic ***/
+	 assign w_game_state = ssta_type;
+	 assign w_bird_y = spos_type;
+	 assign w_score = sscr_type;
+	 assign val_out = data_readRegA;
 endmodule

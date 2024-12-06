@@ -10,7 +10,6 @@ module game_logic_controller(
     input [31:0] iRandomNumber;
     input [1:0] iState;
     output reg signed [16:0] oPipe1X, oPipe1Y, oPipe2X, oPipe2Y, oPipe3X, oPipe3Y;
-    output reg signed [31:0] oTest;
 
     localparam signed INVALID = -1;
     localparam SCREEN_WIDTH = 640;
@@ -20,7 +19,7 @@ module game_logic_controller(
 
     reg [31:0] rand;
     reg [31:0] timer;
-    localparam TIMER_DIVIDER = 200000;
+    localparam TIMER_DIVIDER = 50000;
 
     always @(posedge iClock) begin
         rand <= $unsigned(iRandomNumber[11:4]) + 40;
