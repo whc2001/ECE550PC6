@@ -8,18 +8,18 @@ module game_render_controller(oPixel, iClock, iAddress, iReset,
 	iPipe3X, iPipe3Y,
 	);
 
-	localparam SCREEN_WIDTH = 640;
-	localparam SCREEN_HEIGHT = 480;
+	localparam signed SCREEN_WIDTH = 640;
+	localparam signed SCREEN_HEIGHT = 480;
 
 	output [23:0] oPixel;
 	input [18:0] iAddress;  // 640*480 = 307200
 	input iClock, iReset;
 	input iBGScroll;
 	input [1:0] iScreen;
-	input signed [16:0] iBirdY;
-	input [15:0] iScore;
-	input signed [16:0] iPipe1X, iPipe2X, iPipe3X;
-	input signed [16:0] iPipe1Y, iPipe2Y, iPipe3Y;
+	input signed [31:0] iBirdY;
+	input [31:0] iScore;
+	input signed [31:0] iPipe1X, iPipe2X, iPipe3X;
+	input signed [31:0] iPipe1Y, iPipe2Y, iPipe3Y;
 	
 	/** Color Mapper **/
 	reg [5:0] color_cidx_in;
@@ -161,7 +161,7 @@ module game_render_controller(oPixel, iClock, iAddress, iReset,
 	localparam SCREEN_GAME_OVER = 2;
 	
 	/** Address to Coordinate **/
-	wire [31:0] x, y;
+	wire signed [31:0] x, y;
 	assign x = iAddress % SCREEN_WIDTH;
 	assign y = iAddress / SCREEN_WIDTH;
 

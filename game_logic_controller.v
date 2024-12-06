@@ -9,21 +9,22 @@ module game_logic_controller(
     input iClock, iReset;
     input [31:0] iRandomNumber;
     input [1:0] iState;
-    output reg signed [16:0] oPipe1X, oPipe1Y, oPipe2X, oPipe2Y, oPipe3X, oPipe3Y;
+    output reg signed [31:0] oPipe1X, oPipe1Y, oPipe2X, oPipe2Y, oPipe3X, oPipe3Y;
 
     localparam signed INVALID = -1;
-    localparam SCREEN_WIDTH = 640;
-    localparam PIPE_WIDTH = 52;
-    localparam PIPE_GAP_HEIGHT = 100;
-    localparam PIPE_DISTANCE = 275;
+    localparam signed SCREEN_WIDTH = 640;
+    localparam signed PIPE_WIDTH = 52;
+    localparam signed PIPE_GAP_HEIGHT = 100;
+    localparam signed PIPE_DISTANCE = 275;
 
     reg [31:0] rand;
     reg [31:0] timer;
     localparam TIMER_DIVIDER = 50000;
 
     always @(posedge iClock) begin
-        rand <= $unsigned(iRandomNumber[11:4]) + 40;
-
+        //rand <= $unsigned(iRandomNumber[11:4]) + 40;
+			rand <= $unsigned(iRandomNumber % 195) + 100;
+			
         if (iReset | iState == 0) begin
             oPipe1X <= SCREEN_WIDTH;
             oPipe1Y <= rand;

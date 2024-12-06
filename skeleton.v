@@ -91,8 +91,8 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 
 	/** Registers **/
 	reg [1:0] game_state;
-	reg [15:0] bird_y;
-	reg [15:0] score;
+	reg signed [31:0] bird_y;
+	reg [31:0] score;
 	wire w_game_state, w_bird_y, w_score;
 	wire [31:0] val_out;
 
@@ -103,7 +103,7 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 	pseudo_random_generator(random, clock, random_reset, seed);
 
 	/** Game Logic **/
-	wire [16:0] pipe_1_x, pipe_1_y, pipe_2_x, pipe_2_y, pipe_3_x, pipe_3_y;
+	wire [31:0] pipe_1_x, pipe_1_y, pipe_2_x, pipe_2_y, pipe_3_x, pipe_3_y;
 	game_logic_controller glc(
 		game_clock, reset,
 		random,
