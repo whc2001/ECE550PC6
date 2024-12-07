@@ -119,7 +119,7 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 	assign dig1 = ((test / 10) % 10);
 	assign dig2 = ((test / 100) % 10);
 	assign dig3 = ((test / 1000) % 10);
-	wire [31:0] pipe_1_x, pipe_1_y, pipe_2_x, pipe_2_y, pipe_3_x, pipe_3_y;
+	wire signed [31:0] pipe_1_x, pipe_1_y, pipe_2_x, pipe_2_y, pipe_3_x, pipe_3_y;
 	game_logic_controller glc(
 		game_clock, reset,
 		random,
@@ -199,6 +199,13 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 		w_bird_y,
 		w_score,
 		val_out,
+		
+		pipe_1_x,
+		pipe_1_y,
+		pipe_2_x,
+		pipe_2_y,
+		pipe_3_x,
+		pipe_3_y,
 	);
 
 	always @(posedge clock) begin
