@@ -9,6 +9,7 @@
 #  sscr $rd - set score
 #  pobx1~3/poby1~3 $rd - poll pipe 1~3 x/y position
 #  rsed - random reseed
+
 #define STATE_TITLE 0
 #define STATE_PLAYING 1
 #define STATE_GAME_OVER 2
@@ -16,30 +17,38 @@
 #define BIRD_JUMP_ACC 10
 #define BIRD_FALL_ACC_MAX 9
 #define BIRD_HEIGHT 24
+#define BIRD_WIDTH 34
+#define BIRD_X 303
 #define FLOOR_Y 395
+#define PIPE_WIDTH 52
+#define PIPE_GAP 100
 
 #define $GAME_STATE $1
 #define $BIRD_Y $2
 #define $SCORE $3
-#define $PIPE_X $4
-#define $PIPE_Y $5
+#define $PIPE_X1 $4
+#define $PIPE_Y1 $5
+#define $PIPE_X2 $6
+#define $PIPE_Y2 $7
+#define $PIPE_X3 $8
+#define $PIPE_Y3 $9
 # Dir: 0=falling, 1=jumping
 #define $BIRD_DIR $10
 #define $BIRD_ACC $11
 #define $BIRD_TIMER $20
+#define $COLLISION $21
 #define $TEMP $28
 #define $TEMP2 $27
 #define $KEY_STATUS $29
 
 # Entry point
 addi $GAME_STATE, $0, 0
-MAIN_LOOP:
 
+MAIN_LOOP:
 # Detect key press
 addi $TEMP, $0, 1
 pkey $KEY_STATUS
 bne $KEY_STATUS, $TEMP, LOOP_LOGIC
-
 addi $TEMP, $0, STATE_TITLE
 bne $GAME_STATE, $TEMP, KEY_ELSE1
 # title {
@@ -59,6 +68,7 @@ addi $GAME_STATE, $0, STATE_PLAYING
 ssta $GAME_STATE
 # }
 j LOOP_LOGIC
+
 KEY_ELSE1:
 addi $TEMP, $0, STATE_PLAYING
 bne $GAME_STATE, $TEMP, KEY_ELSE2
@@ -68,6 +78,7 @@ addi $BIRD_DIR, $0, 1
 addi $BIRD_ACC, $0, BIRD_JUMP_ACC
 # }
 j LOOP_LOGIC
+
 KEY_ELSE2:
 addi $TEMP, $0, STATE_GAME_OVER
 bne $GAME_STATE, $TEMP, LOOP_LOGIC
@@ -83,6 +94,16 @@ LOOP_LOGIC:
 addi $TEMP, $0, STATE_PLAYING
 bne $GAME_STATE, $TEMP, MAIN_LOOP
 # playing {
+# Readin pipe positions
+pobx1 $PIPE_X1
+pobx2 $PIPE_X2
+pobx3 $PIPE_X3
+poby1 $PIPE_Y1
+poby2 $PIPE_Y2
+poby3 $PIPE_Y3
+j CHECK_COLLISION
+
+BIRD_MOVE:
 addi $BIRD_TIMER, $BIRD_TIMER, 1
 addi $TEMP, $0, BIRD_TIMER_DIVIDER
 bne $BIRD_TIMER, $TEMP, MAIN_LOOP
@@ -138,7 +159,82 @@ DETECTION:
 addi $TEMP, $BIRD_Y, 0
 addi $TEMP, $TEMP, BIRD_HEIGHT
 addi $TEMP2, $0, FLOOR_Y
-blt $TEMP, $TEMP2, MAIN_LOOP
+blt $TEMP, $TEMP2, CHECK_SCORE
+addi $GAME_STATE, $0, STATE_GAME_OVER
+ssta $GAME_STATE
+j MAIN_LOOP
+
+CHECK_SCORE:
+# pipe1_x + PIPE_WIDTH < BIRD_X
+addi $TEMP, $PIPE_X1, PIPE_WIDTH
+addi $TEMP2, $0, BIRD_X
+blt $TEMP, $TEMP2, ADD_SCORE
+addi $TEMP, $PIPE_X2, PIPE_WIDTH
+blt $TEMP, $TEMP2, ADD_SCORE
+addi $TEMP, $PIPE_X3, PIPE_WIDTH
+blt $TEMP, $TEMP2, ADD_SCORE
+j MAIN_LOOP
+
+ADD_SCORE:
+addi $SCORE, $SCORE, 1
+sscr $SCORE
+j MAIN_LOOP
+
+CHECK_COLLISION:
+addi $COLLISION, $0, 0
+
+# PIPE_X <= BIRD_X + BIRD_WIDTH
+addi $TEMP, $0, BIRD_WIDTH
+addi $TEMP, $TEMP, BIRD_X
+blt $TEMP, $PIPE_X1, CHECK_COLLISION2
+# BIRD_X <= PIPE_X + PIPE_WIDTH
+addi $TEMP, $PIPE_X1, PIPE_WIDTH
+addi $TEMP2, $0, BIRD_X
+blt $TEMP, $TEMP2, CHECK_COLLISION2
+# y_bird < pipe_y
+blt $BIRD_Y, $PIPE_Y1, COLLISION_RETURN
+# y_bird + BIRD_HEIGHT > (pipe_y + PIPE_GAP)
+addi $TEMP, $BIRD_Y, BIRD_HEIGHT
+addi $TEMP2, $PIPE_Y1, PIPE_GAP
+blt $TEMP2, $TEMP, COLLISION_RETURN
+j CHECK_COLLISION2
+
+CHECK_COLLISION2:
+# PIPE_X <= BIRD_X + BIRD_WIDTH
+addi $TEMP, $0, BIRD_WIDTH
+addi $TEMP, $TEMP, BIRD_X
+blt $TEMP, $PIPE_X2, CHECK_COLLISION3
+# BIRD_X <= PIPE_X + PIPE_WIDTH
+addi $TEMP, $PIPE_X2, PIPE_WIDTH
+addi $TEMP2, $0, BIRD_X
+blt $TEMP, $TEMP2, CHECK_COLLISION3
+# y_bird < pipe_y
+blt $BIRD_Y, $PIPE_Y2, COLLISION_RETURN
+# y_bird + BIRD_HEIGHT > (pipe_y + PIPE_GAP)
+addi $TEMP, $BIRD_Y, BIRD_HEIGHT
+addi $TEMP2, $PIPE_2, PIPE_GAP
+blt $TEMP2, $TEMP, COLLISION_RETURN
+j CHECK_COLLISION3
+
+CHECK_COLLISION3:
+# PIPE_X <= BIRD_X + BIRD_WIDTH
+addi $TEMP, $0, BIRD_WIDTH
+addi $TEMP, $TEMP, BIRD_X
+blt $TEMP, $PIPE_X2, BIRD_MOVE
+# BIRD_X <= PIPE_X + PIPE_WIDTH
+addi $TEMP, $PIPE_X2, PIPE_WIDTH
+addi $TEMP2, $0, BIRD_X
+blt $TEMP, $TEMP2, BIRD_MOVE
+# y_bird < pipe_y
+blt $BIRD_Y, $PIPE_Y2, COLLISION_RETURN
+# y_bird + BIRD_HEIGHT > (pipe_y + PIPE_GAP)
+addi $TEMP, $BIRD_Y, BIRD_HEIGHT
+addi $TEMP2, $PIPE_2, PIPE_GAP
+blt $TEMP2, $TEMP, COLLISION_RETURN
+j BIRD_MOVE
+
+COLLISION_RETURN
+addi $COLLISION, $0, 1
 addi $GAME_STATE, $0, STATE_GAME_OVER
 ssta $GAME_STATE
 j MAIN_LOOP
