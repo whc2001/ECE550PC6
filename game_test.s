@@ -35,6 +35,9 @@
 # Dir: 0=falling, 1=jumping
 #define $BIRD_DIR $10
 #define $BIRD_ACC $11
+#define $PIPE1_SCORE $12
+#define $PIPE2_SCORE $13
+#define $PIPE3_SCORE $14
 #define $BIRD_TIMER $20
 #define $COLLISION $21
 #define $TEMP $28
@@ -66,6 +69,10 @@ rsed
 # Set game state to playing
 addi $GAME_STATE, $0, STATE_PLAYING
 ssta $GAME_STATE
+# Set pipe scoring mark
+addi $PIPE1_SCORE, $0, 0
+addi $PIPE2_SCORE, $0, 0
+addi $PIPE3_SCORE, $0, 0
 # }
 j LOOP_LOGIC
 
@@ -132,13 +139,13 @@ j BIRD_FALL
 
 BIRD_RISE:
 sub $BIRD_Y, $BIRD_Y, $BIRD_ACC
-# If less than 0, set to 0
-addi $TEMP, $0, 0
+# If less than -24, set to -24
+addi $TEMP, $0, -24
 blt $BIRD_Y, $TEMP, BIRD_CAP
 spos $BIRD_Y
 j DETECTION
 BIRD_CAP:
-addi $BIRD_Y, $0, 0
+addi $BIRD_Y, $0, -24
 spos $BIRD_Y
 j DETECTION
 
@@ -165,15 +172,50 @@ ssta $GAME_STATE
 j MAIN_LOOP
 
 CHECK_SCORE:
+blt $PIPE1_X, $0, PIPE1_MARK
 # pipe1_x + PIPE_WIDTH < BIRD_X
 addi $TEMP, $PIPE_X1, PIPE_WIDTH
 addi $TEMP2, $0, BIRD_X
-blt $TEMP, $TEMP2, ADD_SCORE
+blt $TEMP, $TEMP2, PIPE1_CHECK
+
+CHECK_SCORE2:
+blt $PIPE2_X, $0, PIPE2_MARK
 addi $TEMP, $PIPE_X2, PIPE_WIDTH
-blt $TEMP, $TEMP2, ADD_SCORE
+blt $TEMP, $TEMP2, PIPE2_CHECK
+
+CHECK_SCORE3:
+blt $PIPE3_X, $0, PIPE3_MARK
 addi $TEMP, $PIPE_X3, PIPE_WIDTH
-blt $TEMP, $TEMP2, ADD_SCORE
+blt $TEMP, $TEMP2, PIPE3_CHECK
 j MAIN_LOOP
+
+PIPE1_MARK:
+addi $PIPE1_SCORE, $0, 0
+j CHECK_SCORE2
+
+PIPE1_CHECK:
+# check if pipe1 score has already been counted
+blt $0, $PIPE1_SCORE, CHECK_SCORE2
+addi $PIPE1_SCORE, $0, 1
+j ADD_SCORE
+
+PIPE2_MARK:
+addi $PIPE2_SCORE, $0, 0
+j CHECK_SCORE3
+
+PIPE2_CHECK:
+blt $0, $PIPE2_SCORE, CHECK_SCORE3
+addi $PIPE2_SCORE, $0, 1
+j ADD_SCORE
+
+PIPE3_MARK:
+addi $PIPE2_SCORE, $0, 0
+j MAIN_LOOP
+
+PIPE3_CHECK:
+blt $0, $PIPE3_SCORE, MAIN_LOOP
+addi $PIPE3_SCORE, $0, 1
+j ADD_SCORE
 
 ADD_SCORE:
 addi $SCORE, $SCORE, 1
