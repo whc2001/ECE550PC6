@@ -331,25 +331,25 @@ module game_render_controller(oPixel, iClock, iAddress, iReset,
 			SCREEN_PLAY: begin
 				color_cidx_in <= (((is_in_score_digit1_area | is_in_score_digit2_area | is_in_score_digit3_area) & (number_cidx_out != 0)) 
 					? number_cidx_out 
+					: ((is_in_bird_area & (bird_cidx_out != 0)) 
+					? bird_cidx_out
 					: (((is_in_pipe_1_top_area | is_in_pipe_2_top_area | is_in_pipe_3_top_area) & (pipe_up_cidx_out != 0))
 					? pipe_up_cidx_out
 					: (((is_in_pipe_1_bottom_area | is_in_pipe_2_bottom_area | is_in_pipe_3_bottom_area) & (pipe_down_cidx_out != 0))
 					? pipe_down_cidx_out
-					: ((is_in_bird_area & (bird_cidx_out != 0)) 
-					? bird_cidx_out
 					: bg_cidx_out))));
 			end
 			SCREEN_GAME_OVER: begin
 				color_cidx_in <= ((is_in_game_over_area & (game_over_cidx_out != 0))
 					? game_over_cidx_out
+					: ((is_in_bird_area & (bird_cidx_out != 0)) 
+					? bird_cidx_out
 					: (((is_in_score_digit1_area | is_in_score_digit2_area | is_in_score_digit3_area) & (number_cidx_out != 0)) 
 					? number_cidx_out 
 					: (((is_in_pipe_1_top_area | is_in_pipe_2_top_area | is_in_pipe_3_top_area) & (pipe_up_cidx_out != 0))
 					? pipe_up_cidx_out
 					: (((is_in_pipe_1_bottom_area | is_in_pipe_2_bottom_area | is_in_pipe_3_bottom_area) & (pipe_down_cidx_out != 0))
 					? pipe_down_cidx_out
-					: ((is_in_bird_area & (bird_cidx_out != 0)) 
-					? bird_cidx_out
 					: bg_cidx_out)))));
 			end
 			default: begin
