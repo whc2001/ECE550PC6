@@ -11,6 +11,7 @@
 
 module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_clock,
 	leds,
+	seg1, seg2, seg3, seg4, seg5, seg6, seg7, seg8,
 	ps2_clock, ps2_data,
 	VGA_CLK,
 	VGA_HS,
@@ -25,6 +26,7 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 	output imem_clock, dmem_clock, processor_clock, regfile_clock;
 	inout ps2_data, ps2_clock;
 	output [7:0] leds;
+	output [6:0] seg1, seg2, seg3, seg4, seg5, seg6, seg7, seg8;
 	output VGA_CLK, VGA_HS, VGA_VS, VGA_BLANK, VGA_SYNC;
 	output [7:0] VGA_R, VGA_G, VGA_B;
 	
@@ -34,7 +36,16 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 	assign reset = (~resetn) | (~DLY_RST);
 
 	/** Debug LEDs **/
-	reg [7:0]	led_buf = 8'h00;
+	reg [7:0] led_buf = 8'h00;
+	wire [3:0] dig0, dig1, dig2, dig3, dig4, dig5, dig6, dig7;
+	Hexadecimal_To_Seven_Segment hex1(dig0, seg1);
+	Hexadecimal_To_Seven_Segment hex2(dig1, seg2);
+	Hexadecimal_To_Seven_Segment hex3(dig2, seg3);
+	Hexadecimal_To_Seven_Segment hex4(dig3, seg4);
+	Hexadecimal_To_Seven_Segment hex5(dig4, seg5);
+	Hexadecimal_To_Seven_Segment hex6(dig5, seg6);
+	Hexadecimal_To_Seven_Segment hex7(dig6, seg7);
+	Hexadecimal_To_Seven_Segment hex8(dig7, seg8);
 
 	/** Clock **/
 	wire ps2ctrl_clock, game_clock;
@@ -98,17 +109,23 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 
 	/** Random **/
 	reg [31:0] seed;
-	wire [31:0] random;
+	wire signed [31:0] random;
 	wire random_reset;
-	pseudo_random_generator(random, clock, random_reset, seed);
+	pseudo_random_generator(random, clock, random_reset, ~seed);
 
 	/** Game Logic **/
+	wire [31:0] test;
+	assign dig0 = (test % 10);
+	assign dig1 = ((test / 10) % 10);
+	assign dig2 = ((test / 100) % 10);
+	assign dig3 = ((test / 1000) % 10);
 	wire [31:0] pipe_1_x, pipe_1_y, pipe_2_x, pipe_2_y, pipe_3_x, pipe_3_y;
 	game_logic_controller glc(
 		game_clock, reset,
 		random,
 		game_state,
 		pipe_1_x, pipe_1_y, pipe_2_x, pipe_2_y, pipe_3_x, pipe_3_y,
+		test,
 	);
 	
 	/** PS2 Keyboard **/
@@ -133,7 +150,7 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 								.rgb_data_raw(rgb_data_raw)
 							);
 	game_render_controller renderer(.oPixel(rgb_data_raw), 
-								.iClock(clock),
+								.iClock(VGA_CLK),
 								.iAddress(ADDR),
 								.iReset(reset),
 								.iScreen(game_state),

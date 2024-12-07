@@ -201,7 +201,7 @@ module game_render_controller(oPixel, iClock, iAddress, iReset,
 		/** Bird **/
 		is_in_bird_area <= (x >= ((SCREEN_WIDTH / 2) - (BIRD_WIDTH / 2)))
 							& (x < ((SCREEN_WIDTH / 2) + (BIRD_WIDTH / 2))) 
-							& (y >= iBirdY) 
+							& (y >= iBirdY)
 							& (y < (iBirdY + BIRD_HEIGHT));
 		bird_pidx_in <= is_in_bird_area ? (x - ((SCREEN_WIDTH / 2) - (BIRD_WIDTH / 2))) + ((y - iBirdY) * BIRD_WIDTH) : 0;
 		bird_cidx_out <= (bird_flap_state == 0) ? bird_0_cidx_out : ((bird_flap_state == 1) ? bird_1_cidx_out : bird_2_cidx_out);
@@ -293,7 +293,7 @@ module game_render_controller(oPixel, iClock, iAddress, iReset,
 								? ((x - iPipe2X) + ((y - iPipe2Y - PIPE_GAP_HEIGHT) * PIPE_WIDTH))
 								: (is_in_pipe_3_bottom_area
 									? ((x - iPipe3X) + ((y - iPipe3Y - PIPE_GAP_HEIGHT) * PIPE_WIDTH))
-									: 0));
+									: 19708));	// Crude hack to prevent timing failure, put the else situation to a transparent pixel
 
 		/** Title **/
 		is_in_title_area <= (x >= TITLE_OFFSET_X)

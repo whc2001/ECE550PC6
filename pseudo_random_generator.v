@@ -1,5 +1,5 @@
 module pseudo_random_generator(oValue, iClock, iReset, iSeed);
-    output reg [31:0] oValue;
+    output reg signed [31:0] oValue;
     input iClock, iReset;
     input [31:0] iSeed;
 	 
