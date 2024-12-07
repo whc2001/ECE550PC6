@@ -19,7 +19,7 @@
 #define BIRD_HEIGHT 22
 #define BIRD_WIDTH 32
 #define BIRD_X 305
-#define FLOOR_Y 395
+#define FLOOR_Y 390
 #define PIPE_WIDTH 52
 #define PIPE_GAP 100
 #define DIF 2
