@@ -215,3 +215,56 @@ COLLIDED:
 addi $GAME_STATE, $0, STATE_GAME_OVER
 ssta $GAME_STATE
 j MAIN_LOOP
+
+
+# ####################################################
+# CHECK_SCORE:
+# blt $PIPE_X1, $0, PIPE1_MARK
+# # pipe1_x + PIPE_WIDTH < BIRD_X
+# addi $TEMP, $PIPE_X1, PIPE_WIDTH
+# addi $TEMP2, $0, BIRD_X
+# blt $TEMP, $TEMP2, PIPE1_CHECK
+# 
+# CHECK_SCORE2:
+# blt $PIPE_X2, $0, PIPE2_MARK
+# addi $TEMP, $PIPE_X2, PIPE_WIDTH
+# blt $TEMP, $TEMP2, PIPE2_CHECK
+# 
+# CHECK_SCORE3:
+# blt $PIPE_X3, $0, PIPE3_MARK
+# addi $TEMP, $PIPE_X3, PIPE_WIDTH
+# blt $TEMP, $TEMP2, PIPE3_CHECK
+# j MAIN_LOOP
+# 
+# PIPE1_MARK:
+# addi $PIPE1_SCORE, $0, 0
+# j CHECK_SCORE2
+# 
+# PIPE1_CHECK:
+# # check if pipe1 score has already been counted
+# blt $0, $PIPE1_SCORE, CHECK_SCORE2
+# addi $PIPE1_SCORE, $0, 1
+# j ADD_SCORE
+# 
+# PIPE2_MARK:
+# addi $PIPE2_SCORE, $0, 0
+# j CHECK_SCORE3
+# 
+# PIPE2_CHECK:
+# blt $0, $PIPE2_SCORE, CHECK_SCORE3
+# addi $PIPE2_SCORE, $0, 1
+# j ADD_SCORE
+# 
+# PIPE3_MARK:
+# addi $PIPE2_SCORE, $0, 0
+# j MAIN_LOOP
+# 
+# PIPE3_CHECK:
+# blt $0, $PIPE3_SCORE, MAIN_LOOP
+# addi $PIPE3_SCORE, $0, 1
+# j ADD_SCORE
+# 
+# ADD_SCORE:
+# addi $SCORE, $SCORE, 1
+# sscr $SCORE
+# j MAIN_LOOP
