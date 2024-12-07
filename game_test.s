@@ -16,9 +16,9 @@
 #define BIRD_TIMER_DIVIDER 8000
 #define BIRD_JUMP_ACC 10
 #define BIRD_FALL_ACC_MAX 9
-#define BIRD_HEIGHT 24
-#define BIRD_WIDTH 34
-#define BIRD_X 303
+#define BIRD_HEIGHT 22
+#define BIRD_WIDTH 32
+#define BIRD_X 305
 #define FLOOR_Y 395
 #define PIPE_WIDTH 52
 #define PIPE_GAP 100
@@ -105,6 +105,7 @@ bne $GAME_STATE, $TEMP, MAIN_LOOP
 addi $TEMP, $BIRD_Y, BIRD_HEIGHT
 addi $TEMP2, $0, FLOOR_Y
 blt $TEMP, $TEMP2, CHECK_PIPE
+addi $BIRD_Y, $BIRD_Y, 2
 j COLLIDED
 
 CHECK_PIPE:
