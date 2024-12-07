@@ -13,14 +13,15 @@
 #define STATE_TITLE 0
 #define STATE_PLAYING 1
 #define STATE_GAME_OVER 2
-#define BIRD_TIMER_DIVIDER 8000
-#define BIRD_JUMP_ACC 10
-#define BIRD_FALL_ACC_MAX 9
+#define BIRD_TIMER_DIVIDER 5000
+#define BIRD_JUMP_ACC 9
+#define BIRD_FALL_ACC_MAX 8
 #define BIRD_HEIGHT 22
 #define BIRD_WIDTH 32
 #define BIRD_X 305
 #define FLOOR_Y 390
 #define PIPE_WIDTH 52
+#define HALF_PIPE_WIDTH 30
 #define PIPE_GAP 100
 #define DIF 2
 
@@ -201,11 +202,11 @@ sub $BIRD_Y, $BIRD_Y, $BIRD_ACC
 addi $TEMP, $0, -24
 blt $BIRD_Y, $TEMP, BIRD_CAP
 spos $BIRD_Y
-j MAIN_LOOP
+j CHECK_SCORE
 BIRD_CAP:
 addi $BIRD_Y, $0, -24
 spos $BIRD_Y
-j MAIN_LOOP
+j CHECK_SCORE
 
 BIRD_FALL:
 add $BIRD_Y, $BIRD_Y, $BIRD_ACC
@@ -213,66 +214,64 @@ add $BIRD_Y, $BIRD_Y, $BIRD_ACC
 addi $TEMP, $0, 480
 blt $TEMP, $BIRD_Y, BIRD_CAP2
 spos $BIRD_Y
-j MAIN_LOOP
+j CHECK_SCORE
 BIRD_CAP2:
 addi $BIRD_Y, $0, 480
 spos $BIRD_Y
-j MAIN_LOOP
+j CHECK_SCORE
 
 COLLIDED:
 addi $GAME_STATE, $0, STATE_GAME_OVER
 ssta $GAME_STATE
 j MAIN_LOOP
 
+CHECK_SCORE:
+blt $PIPE_X1, $0, PIPE1_MARK
+# pipe1_x + PIPE_WIDTH < BIRD_X
+addi $TEMP, $PIPE_X1, HALF_PIPE_WIDTH
+addi $TEMP2, $0, BIRD_X
+blt $TEMP, $TEMP2, PIPE1_CHECK
 
-# ####################################################
-# CHECK_SCORE:
-# blt $PIPE_X1, $0, PIPE1_MARK
-# # pipe1_x + PIPE_WIDTH < BIRD_X
-# addi $TEMP, $PIPE_X1, PIPE_WIDTH
-# addi $TEMP2, $0, BIRD_X
-# blt $TEMP, $TEMP2, PIPE1_CHECK
-# 
-# CHECK_SCORE2:
-# blt $PIPE_X2, $0, PIPE2_MARK
-# addi $TEMP, $PIPE_X2, PIPE_WIDTH
-# blt $TEMP, $TEMP2, PIPE2_CHECK
-# 
-# CHECK_SCORE3:
-# blt $PIPE_X3, $0, PIPE3_MARK
-# addi $TEMP, $PIPE_X3, PIPE_WIDTH
-# blt $TEMP, $TEMP2, PIPE3_CHECK
-# j MAIN_LOOP
-# 
-# PIPE1_MARK:
-# addi $PIPE1_SCORE, $0, 0
-# j CHECK_SCORE2
-# 
-# PIPE1_CHECK:
-# # check if pipe1 score has already been counted
-# blt $0, $PIPE1_SCORE, CHECK_SCORE2
-# addi $PIPE1_SCORE, $0, 1
-# j ADD_SCORE
-# 
-# PIPE2_MARK:
-# addi $PIPE2_SCORE, $0, 0
-# j CHECK_SCORE3
-# 
-# PIPE2_CHECK:
-# blt $0, $PIPE2_SCORE, CHECK_SCORE3
-# addi $PIPE2_SCORE, $0, 1
-# j ADD_SCORE
-# 
-# PIPE3_MARK:
-# addi $PIPE2_SCORE, $0, 0
-# j MAIN_LOOP
-# 
-# PIPE3_CHECK:
-# blt $0, $PIPE3_SCORE, MAIN_LOOP
-# addi $PIPE3_SCORE, $0, 1
-# j ADD_SCORE
-# 
-# ADD_SCORE:
-# addi $SCORE, $SCORE, 1
-# sscr $SCORE
-# j MAIN_LOOP
+CHECK_SCORE2:
+blt $PIPE_X2, $0, PIPE2_MARK
+addi $TEMP, $PIPE_X2, HALF_PIPE_WIDTH
+blt $TEMP, $TEMP2, PIPE2_CHECK
+
+CHECK_SCORE3:
+blt $PIPE_X3, $0, PIPE3_MARK
+addi $TEMP, $PIPE_X3, HALF_PIPE_WIDTH
+blt $TEMP, $TEMP2, PIPE3_CHECK
+j MAIN_LOOP
+
+PIPE1_MARK:
+addi $PIPE1_SCORE, $0, 0
+j CHECK_SCORE2
+
+PIPE1_CHECK:
+# check if pipe1 score has already been counted
+blt $0, $PIPE1_SCORE, CHECK_SCORE2
+addi $PIPE1_SCORE, $0, 1
+j ADD_SCORE
+
+PIPE2_MARK:
+addi $PIPE2_SCORE, $0, 0
+j CHECK_SCORE3
+
+PIPE2_CHECK:
+blt $0, $PIPE2_SCORE, CHECK_SCORE3
+addi $PIPE2_SCORE, $0, 1
+j ADD_SCORE
+
+PIPE3_MARK:
+addi $PIPE3_SCORE, $0, 0
+j MAIN_LOOP
+
+PIPE3_CHECK:
+blt $0, $PIPE3_SCORE, MAIN_LOOP
+addi $PIPE3_SCORE, $0, 1
+j ADD_SCORE
+
+ADD_SCORE:
+addi $SCORE, $SCORE, 1
+sscr $SCORE
+j MAIN_LOOP
