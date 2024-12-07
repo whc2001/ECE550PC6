@@ -250,35 +250,35 @@ module game_render_controller(oPixel, iClock, iAddress, iReset,
 							& (iPipe3Y < SCREEN_HEIGHT - PIPE_GAP_HEIGHT);
 
 		is_in_pipe_1_top_area <= pipe_1_valid
-								& ($signed(x) >= iPipe1X)
-								& ($signed(x) < iPipe1X + PIPE_WIDTH)
-								& ($signed(y) >= 0)
-								& ($signed(y) < iPipe1Y);
+								& (x >= iPipe1X)
+								& (x < iPipe1X + PIPE_WIDTH)
+								& (y >= 0)
+								& (y < iPipe1Y);
 		is_in_pipe_2_top_area <= pipe_2_valid
-								& ($signed(x) >= iPipe2X)
-								& ($signed(x) < iPipe2X + PIPE_WIDTH)
-								& ($signed(y) >= 0)
-								& ($signed(y) < iPipe2Y);
+								& (x >= iPipe2X)
+								& (x < iPipe2X + PIPE_WIDTH)
+								& (y >= 0)
+								& (y < iPipe2Y);
 		is_in_pipe_3_top_area <= pipe_3_valid
-								& ($signed(x) >= iPipe3X)
-								& ($signed(x) < iPipe3X + PIPE_WIDTH)
-								& ($signed(y) >= 0)
-								& ($signed(y) < iPipe3Y);
+								& (x >= iPipe3X)
+								& (x < iPipe3X + PIPE_WIDTH)
+								& (y >= 0)
+								& (y < iPipe3Y);
 		is_in_pipe_1_bottom_area <= pipe_1_valid
-								& ($signed(x) >= iPipe1X)
-								& ($signed(x) < iPipe1X + PIPE_WIDTH)
-								& ($signed(y) >= iPipe1Y + PIPE_GAP_HEIGHT)
-								& ($signed(y) < SCREEN_HEIGHT);
+								& (x >= iPipe1X)
+								& (x < iPipe1X + PIPE_WIDTH)
+								& (y >= iPipe1Y + PIPE_GAP_HEIGHT)
+								& (y < SCREEN_HEIGHT);
 		is_in_pipe_2_bottom_area <= pipe_2_valid 
-								& ($signed(x) >= iPipe2X)
-								& ($signed(x) < iPipe2X + PIPE_WIDTH)
-								& ($signed(y) >= iPipe2Y + PIPE_GAP_HEIGHT)
-								& ($signed(y) < SCREEN_HEIGHT);
+								& (x >= iPipe2X)
+								& (x < iPipe2X + PIPE_WIDTH)
+								& (y >= iPipe2Y + PIPE_GAP_HEIGHT)
+								& (y < SCREEN_HEIGHT);
 		is_in_pipe_3_bottom_area <= pipe_3_valid 
-								& ($signed(x) >= iPipe3X)
-								& ($signed(x) < iPipe3X + PIPE_WIDTH)
-								& ($signed(y) >= iPipe3Y + PIPE_GAP_HEIGHT)
-								& ($signed(y) < SCREEN_HEIGHT);
+								& (x >= iPipe3X)
+								& (x < iPipe3X + PIPE_WIDTH)
+								& (y >= iPipe3Y + PIPE_GAP_HEIGHT)
+								& (y < SCREEN_HEIGHT);
 
 		pipe_up_pidx_in <= is_in_pipe_1_top_area
 							? ((x - iPipe1X) + ((y + (PIPE_HEIGHT - iPipe1Y)) * PIPE_WIDTH))
