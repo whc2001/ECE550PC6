@@ -118,7 +118,7 @@ module processor(
 	 // Game Logic
 	 output w_game_state, w_bird_y, w_score;
 	 output [31:0] val_out;
-	 input [15:0] pipe_1_x, pipe_1_y, pipe_2_x, pipe_2_y, pipe_3_x, pipe_3_y;
+	 input signed [31:0] pipe_1_x, pipe_1_y, pipe_2_x, pipe_2_y, pipe_3_x, pipe_3_y;
 	 
 	 /*** PC wires ***/
 	 wire [11:0] pc_in, pc_out;
