@@ -118,12 +118,6 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 	wire w_game_state, w_bird_y, w_score, w_sound;
 	wire [31:0] val_out;
 
-	/** Random **/
-	reg [31:0] seed;
-	wire signed [31:0] random;
-	wire random_reset;
-	pseudo_random_generator(random, clock, random_reset, ~seed);
-
 	/** Game Logic **/
 	wire [31:0] test;
 	assign dig0 = (test % 10);
@@ -131,6 +125,17 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 	assign dig2 = ((test / 100) % 10);
 	assign dig3 = ((test / 1000) % 10);
 	wire signed [31:0] pipe_1_x, pipe_1_y, pipe_2_x, pipe_2_y, pipe_3_x, pipe_3_y;
+	reg [31:0] seed;
+	wire signed [31:0] random;
+	wire random_reset;
+	pseudo_random_generator game_rng(
+		.iClock(game_clock),
+		.iReset(reset | random_reset),
+		.iSeed(seed),
+		.iLower(30),
+		.iUpper(260),
+		.oValue(random)
+	);
 	game_logic_controller glc(
 		game_clock, reset,
 		random,

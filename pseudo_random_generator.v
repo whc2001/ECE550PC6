@@ -1,19 +1,36 @@
-module pseudo_random_generator(oValue, iClock, iReset, iSeed);
-    output reg signed [31:0] oValue;
-    input iClock, iReset;
-    input [31:0] iSeed;
-	 
-	 wire fb = oValue[31] ^ oValue[29] ^ oValue[28] ^ oValue[27]
-					^ oValue[23] ^ oValue[20] ^ oValue[19] ^ oValue[17]
-					^ oValue[15] ^ oValue[14] ^ oValue[12] ^ oValue[11]
-					^ oValue[9] ^ oValue[4] ^ oValue[3] ^ oValue[2];
+module pseudo_random_generator(
+    input wire iClock,
+    input wire iReset,
+    input wire [31:0] iSeed,
+    input wire [31:0] iLower,
+    input wire [31:0] iUpper,
+    output reg [31:0] oValue
+);
+
+    reg [31:0] lfsr;
+    wire feedback;
+    assign feedback = lfsr[31] ^ lfsr[30] ^ lfsr[29] ^ lfsr[9];
 
     always @(posedge iClock or posedge iReset) begin
         if (iReset) begin
-            oValue <= (iSeed == 0) ? 32'hFA114514 : iSeed;
+            lfsr <= (iSeed != 0) ? iSeed : 32'hACE12468;
         end
         else begin
-            oValue <= { oValue[30:0], fb };
+            lfsr <= { lfsr[30:0], feedback };
         end
     end
+
+    wire [31:0] range = iUpper - iLower + 1;
+    wire [63:0] mult_result = lfsr * range;
+    wire [31:0] scaled_random = mult_result[63:32] + iLower;
+
+    always @(posedge iClock or posedge iReset) begin
+        if (iReset) begin
+            oValue <= iLower;
+        end
+        else begin
+            oValue <= scaled_random;
+        end
+    end
+
 endmodule

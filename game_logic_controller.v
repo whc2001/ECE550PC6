@@ -8,7 +8,7 @@ module game_logic_controller(
 	oTest,
 );
 	input iClock, iReset;
-	input [31:0] iRandomNumber;
+	input signed [31:0] iRandomNumber;
 	input [1:0] iState;
 	output reg signed [31:0] oPipe1X, oPipe1Y, oPipe2X, oPipe2Y, oPipe3X, oPipe3Y;
 	output reg [31:0] oTest;
@@ -19,20 +19,17 @@ module game_logic_controller(
 	localparam signed PIPE_GAP_HEIGHT = 100;
 	localparam signed PIPE_DISTANCE = 275;
 	localparam signed PIPE_Y_MIN = 50;
-	
-	reg [7:0] rand_pre;
-	reg signed [31:0] rand_pos;
+
+	reg signed [31:0] rand;
 	reg [31:0] timer;
 	localparam TIMER_DIVIDER = 50000;
 
 	always @(posedge iClock) begin
-		// Use sync assignment for random
-		rand_pre = (iRandomNumber[7:0]) % 8'd200;
-		rand_pos = 32'd80 + { 24'b0, rand_pre };
+		rand = iRandomNumber;
 
 		if (iReset | (iState == 0)) begin
 			oPipe1X <= SCREEN_WIDTH;
-			oPipe1Y <= rand_pos;
+			oPipe1Y <= rand;
 			oTest <= 9876;
 			oPipe2X <= SCREEN_WIDTH + PIPE_DISTANCE;
 			oPipe2Y <= INVALID;
@@ -42,31 +39,31 @@ module game_logic_controller(
 		end
 		else if (iState == 1) begin
 			if (oPipe1Y == INVALID) begin
-				oPipe1Y <= rand_pos;
-				oTest <= rand_pos;
+				oPipe1Y <= rand;
+				oTest <= rand;
 			end
 			else if (oPipe2Y == INVALID) begin
-				oPipe2Y <= rand_pos;
-				oTest <= rand_pos;
+				oPipe2Y <= rand;
+				oTest <= rand;
 			end
 			else if (oPipe3Y == INVALID) begin
-				oPipe3Y <= rand_pos;
-				oTest <= rand_pos;
+				oPipe3Y <= rand;
+				oTest <= rand;
 			end
 			else if (oPipe1X < -PIPE_WIDTH) begin
 				oPipe1X <= oPipe3X + PIPE_DISTANCE;
-				oPipe1Y <= rand_pos;
-				oTest <= rand_pos;
+				oPipe1Y <= rand;
+				oTest <= rand;
 			end
 			else if (oPipe2X < -PIPE_WIDTH) begin
 				oPipe2X <= oPipe1X + PIPE_DISTANCE;
-				oPipe2Y <= rand_pos;
-				oTest <= rand_pos;
+				oPipe2Y <= rand;
+				oTest <= rand;
 			end
 			else if (oPipe3X < -PIPE_WIDTH) begin
 				oPipe3X <= oPipe2X + PIPE_DISTANCE;
-				oPipe3Y <= rand_pos;
-				oTest <= rand_pos;
+				oPipe3Y <= rand;
+				oTest <= rand;
 			end
 
 			timer = timer + 1;
