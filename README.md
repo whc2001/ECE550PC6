@@ -4,11 +4,11 @@
 
 - [x] PS/2 键盘输入
 - [x] 游戏画面渲染
-- [X] 随机数生成
-- [X] 游戏进程控制（柱子位置）
-- [X] 胶水逻辑（skeleton）
-- [X] 音响发生器
-- [X] CPU 接入
+- [x] 随机数生成
+- [x] 游戏进程控制（柱子位置）
+- [x] 胶水逻辑（skeleton）
+- [x] CPU 接入
+- [x] 音响发生器【做着玩的不算分】
 
 ## Specs
 
@@ -36,3 +36,11 @@
 - `spos $rd`（11101）写 $rd 到鸟的位置显示寄存器（鸟只在 y 轴上移动）
 - `sscr $rd`（11110）写 $rd 到分数显示寄存器
 - `ssnd $rd`（01111）写 $rd 到音响发生器（0=跳跃 1=得分 2=死亡）
+
+## 引用参考
+
+素材来源：[BearJ/FlappyBird](https://github.com/BearJ/FlappyBird)
+
+音响发生器代码来自 DE2-115 开发板自带例程 DE2_115_Synthesizer
+
+改过的带自定指令和文本替换功能的汇编器：[whc2001/550-assembler-PC6](https://github.com/whc2001/550-assembler-PC6) 来源：[timlee0212/550-assembler](https://github.com/whc2001/550-assembler-PC6)
