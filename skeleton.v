@@ -29,7 +29,7 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 	input clock, resetn;	
 	output imem_clock, dmem_clock, processor_clock, regfile_clock;
 	inout ps2_data, ps2_clock;
-	output [7:0] leds;
+	output [8:0] leds;
 	output [6:0] seg1, seg2, seg3, seg4, seg5, seg6, seg7, seg8;
 	output VGA_CLK, VGA_HS, VGA_VS, VGA_BLANK, VGA_SYNC;
 	output [7:0] VGA_R, VGA_G, VGA_B;
@@ -42,18 +42,6 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 	wire reset;
 	Reset_Delay r0 (.iCLK(clock),.oRESET(DLY_RST));
 	assign reset = (~resetn) | (~DLY_RST);
-
-	/** Debug LEDs **/
-	reg [7:0] led_buf = 8'h00;
-	wire [3:0] dig0, dig1, dig2, dig3, dig4, dig5, dig6, dig7;
-	Hexadecimal_To_Seven_Segment hex1(dig0, seg1);
-	Hexadecimal_To_Seven_Segment hex2(dig1, seg2);
-	Hexadecimal_To_Seven_Segment hex3(dig2, seg3);
-	Hexadecimal_To_Seven_Segment hex4(dig3, seg4);
-	Hexadecimal_To_Seven_Segment hex5(dig4, seg5);
-	Hexadecimal_To_Seven_Segment hex6(dig5, seg6);
-	Hexadecimal_To_Seven_Segment hex7(dig6, seg7);
-	Hexadecimal_To_Seven_Segment hex8(dig7, seg8);
 
 	/** Clock **/
 	wire ps2ctrl_clock, game_clock;
@@ -119,11 +107,6 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 	wire [31:0] val_out;
 
 	/** Game Logic **/
-	wire [31:0] test;
-	assign dig0 = (test % 10);
-	assign dig1 = ((test / 10) % 10);
-	assign dig2 = ((test / 100) % 10);
-	assign dig3 = ((test / 1000) % 10);
 	wire signed [31:0] pipe_1_x, pipe_1_y, pipe_2_x, pipe_2_y, pipe_3_x, pipe_3_y;
 	reg [31:0] seed;
 	wire signed [31:0] random;
@@ -141,7 +124,6 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 		random,
 		game_state,
 		pipe_1_x, pipe_1_y, pipe_2_x, pipe_2_y, pipe_3_x, pipe_3_y,
-		test,
 	);
 	
 	/** PS2 Keyboard **/
@@ -218,6 +200,27 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 		.oFreq(ch3_f)
 	);
 
+	/** Onboard LEDs **/
+	assign leds = { game_state[0], 8'b0 };
+	wire thousandsDigitEn, hundredsDigitEn, tensDigitEn, onesDigitEn;
+	wire [3:0] thousandsDigit, hundredsDigit, tensDigit, onesDigit;
+	assign thousandsDigitEn = (game_state[0] | game_state[1]) & (score >= 1000);
+	assign hundredsDigitEn = (game_state[0] | game_state[1]) & (score >= 100);
+	assign tensDigitEn = (game_state[0] | game_state[1]) & (score >= 10);
+	assign onesDigitEn = (game_state[0] | game_state[1]);
+	assign thousandsDigit = (score / 1000) % 10;
+	assign hundredsDigit = (score / 100) % 10;
+	assign tensDigit = (score / 10) % 10;
+	assign onesDigit = score % 10;
+	Hexadecimal_To_Seven_Segment hex5(thousandsDigitEn, thousandsDigit, seg4);
+	Hexadecimal_To_Seven_Segment hex6(hundredsDigitEn, hundredsDigit, seg3);
+	Hexadecimal_To_Seven_Segment hex7(tensDigitEn, tensDigit, seg2);
+	Hexadecimal_To_Seven_Segment hex8(onesDigitEn, onesDigit, seg1);
+	Hexadecimal_To_Seven_Segment hex1(1'b0, 0, seg5);
+	Hexadecimal_To_Seven_Segment hex2(1'b0, 0, seg6);
+	Hexadecimal_To_Seven_Segment hex3(1'b0, 0, seg7);
+	Hexadecimal_To_Seven_Segment hex4(1'b0, 0, seg8);
+
 	/** PROCESSOR **/
 	processor my_processor(
 		// Control signals
@@ -286,19 +289,6 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 				score_play <= 0;
 				death_play <= 0;
 			end
-		// if (space_state == 2'd1 && !reset_space_state) begin
-		// 	if (screen == 0)
-		// 		random_reset <= 1'b1;
-		// 	screen <= (screen + 1) % 3;
-		// 	reset_space_state <= 1'b1;
-		// end
-		// else if (space_state == 2'd2 && !reset_space_state) begin
-		// 	reset_space_state <= 1'b1;
-		// end
-		// else begin
-		// 	reset_space_state <= 1'b0;
-		// 	random_reset <= 1'b0;
-		// end
 		end
 	end
 	
