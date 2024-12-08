@@ -8,7 +8,7 @@ module game_logic_controller(
 	oTest,
 );
 	input iClock, iReset;
-	input signed [31:0] iRandomNumber;
+	input [31:0] iRandomNumber;
 	input [1:0] iState;
 	output reg signed [31:0] oPipe1X, oPipe1Y, oPipe2X, oPipe2Y, oPipe3X, oPipe3Y;
 	output reg [31:0] oTest;
@@ -27,8 +27,8 @@ module game_logic_controller(
 
 	always @(posedge iClock) begin
 		// Use sync assignment for random
-		rand_pre = iRandomNumber[7:0] % 8'd216;
-		rand_pos = 50 + { 24'b0, rand_pre };
+		rand_pre = (iRandomNumber[7:0]) % 8'd200;
+		rand_pos = 32'd80 + { 24'b0, rand_pre };
 
 		if (iReset | (iState == 0)) begin
 			oPipe1X <= SCREEN_WIDTH;
