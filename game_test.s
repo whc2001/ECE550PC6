@@ -70,6 +70,9 @@ rsed
 # Set game state to playing
 addi $GAME_STATE, $0, STATE_PLAYING
 ssta $GAME_STATE
+# Play jump sound
+addi $TEMP, $0, 0
+ssnd $TEMP
 # Set pipe scoring mark
 addi $PIPE1_SCORE, $0, 0
 addi $PIPE2_SCORE, $0, 0
@@ -84,6 +87,9 @@ bne $GAME_STATE, $TEMP, KEY_ELSE2
 # Set bird to jump
 addi $BIRD_DIR, $0, 1
 addi $BIRD_ACC, $0, BIRD_JUMP_ACC
+# Play jump sound
+addi $TEMP, $0, 0
+ssnd $TEMP
 # }
 j GAME_LOGIC
 
@@ -223,6 +229,9 @@ j CHECK_SCORE
 COLLIDED:
 addi $GAME_STATE, $0, STATE_GAME_OVER
 ssta $GAME_STATE
+# Play death sound
+addi $TEMP, $0, 2
+ssnd $TEMP
 j MAIN_LOOP
 
 CHECK_SCORE:
@@ -274,4 +283,7 @@ j ADD_SCORE
 ADD_SCORE:
 addi $SCORE, $SCORE, 1
 sscr $SCORE
+# Play scoring sound
+addi $TEMP, $0, 1
+ssnd $TEMP
 j MAIN_LOOP

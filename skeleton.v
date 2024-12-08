@@ -21,6 +21,10 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 	VGA_R,
 	VGA_G,
 	VGA_B,
+	AUD_BCLK,
+	AUD_DACDAT,
+	AUD_DACLRCK,
+	AUD_XCK,
 	);
 	input clock, resetn;	
 	output imem_clock, dmem_clock, processor_clock, regfile_clock;
@@ -29,6 +33,10 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 	output [6:0] seg1, seg2, seg3, seg4, seg5, seg6, seg7, seg8;
 	output VGA_CLK, VGA_HS, VGA_VS, VGA_BLANK, VGA_SYNC;
 	output [7:0] VGA_R, VGA_G, VGA_B;
+	inout AUD_BCLK;
+	output AUD_DACDAT;
+	inout AUD_DACLRCK;
+	output AUD_XCK;
 	
 	/** Reset Logic **/
 	wire reset;
@@ -55,6 +63,9 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 	clock_divider_quarter div2(processor_clock, clock, reset);
 	clock_divider_quarter div3(ps2ctrl_clock, clock, reset);
 	clock_divider_quarter div4(game_clock, clock, reset);
+	wire DLY_RST, VGA_CTRL_CLK, VGA_CLK, AUD_CTRL_CLK;
+	VGA_Audio_PLL pll (.areset(~DLY_RST),.inclk0(clock),.c0(VGA_CTRL_CLK),.c1(AUD_CTRL_CLK),.c2(VGA_CLK));
+	assign AUD_XCK = AUD_CTRL_CLK;
 
 	/** IMEM **/
 	// Figure out how to generate a Quartus syncram component and commit the generated verilog file.
@@ -104,7 +115,7 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 	reg [1:0] game_state;
 	reg signed [31:0] bird_y;
 	reg [31:0] score;
-	wire w_game_state, w_bird_y, w_score;
+	wire w_game_state, w_bird_y, w_score, w_sound;
 	wire [31:0] val_out;
 
 	/** Random **/
@@ -134,10 +145,9 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 	PS2_Interface myps2(ps2ctrl_clock, ~reset, ps2_clock, ps2_data, space_state, reset_space_state);
 
 	/** VGA controller **/
-	wire DLY_RST, VGA_CTRL_CLK, VGA_CLK, AUD_CTRL_CLK;
+
 	wire [18:0] ADDR;
 	wire [23:0] rgb_data_raw;
-	VGA_Audio_PLL pll (.areset(~DLY_RST),.inclk0(clock),.c0(VGA_CTRL_CLK),.c1(AUD_CTRL_CLK),.c2(VGA_CLK));
 	vga_controller vga_ctrl(.iRST_n(~reset),
 								.iVGA_CLK(VGA_CLK),
 								.oBLANK_n(VGA_BLANK),
@@ -164,6 +174,44 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 								.iPipe3X(pipe_3_x),
 								.iPipe3Y(pipe_3_y)
 								);
+								
+	/** Audio **/
+	reg jump_play, score_play, death_play;
+	wire ch1_en, ch2_en, ch3_en;
+	wire [15:0] ch1_f, ch2_f, ch3_f;
+	adio_codec psg (
+				.iRST_N( ~reset ),
+				.iCLK_18_4( AUD_CTRL_CLK ),
+				.oAUD_BCK( AUD_BCLK ),
+				.oAUD_DATA( AUD_DACDAT ),
+				.oAUD_LRCK( AUD_DACLRCK ),																
+				.ch1_en(ch1_en),
+				.ch2_en(ch2_en),
+				.ch3_en(ch3_en),
+				.ch4_en(0),
+				.ch1_f(ch1_f),
+				.ch2_f(ch2_f),
+				.ch3_f(ch3_f),
+				.ch4_f(0),
+				);
+	se_jump _jump(
+		.iClock(AUD_CTRL_CLK),
+		.iTrig(jump_play),
+		.oEnable(ch1_en),
+		.oFreq(ch1_f)
+	);
+	se_score _score(
+		.iClock(AUD_CTRL_CLK),
+		.iTrig(score_play),
+		.oEnable(ch2_en),
+		.oFreq(ch2_f)
+	);
+	se_death _death(
+		.iClock(AUD_CTRL_CLK),
+		.iTrig(death_play),
+		.oEnable(ch3_en),
+		.oFreq(ch3_f)
+	);
 
 	/** PROCESSOR **/
 	processor my_processor(
@@ -198,6 +246,7 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 		w_game_state,
 		w_bird_y,
 		w_score,
+		w_sound,
 		val_out,
 		
 		pipe_1_x,
@@ -222,6 +271,16 @@ module skeleton(clock, resetn, imem_clock, dmem_clock, processor_clock, regfile_
 			if(w_game_state) game_state <= val_out;
 			if(w_bird_y) bird_y <= val_out;
 			if(w_score) score <= val_out;
+			if(w_sound) begin
+				if (val_out == 0) jump_play <= 1;
+				else if (val_out == 1) score_play <= 1;
+				else if (val_out == 2) death_play <= 1;
+			end
+			else begin
+				jump_play <= 0;
+				score_play <= 0;
+				death_play <= 0;
+			end
 		// if (space_state == 2'd1 && !reset_space_state) begin
 		// 	if (screen == 0)
 		// 		random_reset <= 1'b1;

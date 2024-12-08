@@ -79,6 +79,7 @@ module processor(
 	w_game_state,
 	w_bird_y,
 	w_score,
+	w_sound,
 	val_out,
 	
 	pipe_1_x,
@@ -116,7 +117,7 @@ module processor(
 	 output random_reseed;
 
 	 // Game Logic
-	 output w_game_state, w_bird_y, w_score;
+	 output w_game_state, w_bird_y, w_score, w_sound;
 	 output [31:0] val_out;
 	 input signed [31:0] pipe_1_x, pipe_1_y, pipe_2_x, pipe_2_y, pipe_3_x, pipe_3_y;
 	 
@@ -144,6 +145,7 @@ module processor(
 	 wire ssta_type = opcode[4] & opcode[3] & opcode[2] & ~opcode[1] & ~opcode[0];
 	 wire spos_type = opcode[4] & opcode[3] & opcode[2] & ~opcode[1] & opcode[0];
 	 wire sscr_type = opcode[4] & opcode[3] & opcode[2] & opcode[1] & ~opcode[0];
+	 wire ssnd_type = ~opcode[4] & opcode[3] & opcode[2] & opcode[1] & opcode[0];
 	 wire pobx1_type = ~opcode[4] & opcode[3] & ~opcode[2] & ~opcode[1] & ~opcode[0];
 	 wire pobx2_type = ~opcode[4] & opcode[3] & ~opcode[2] & ~opcode[1] & opcode[0];
 	 wire pobx3_type = ~opcode[4] & opcode[3] & ~opcode[2] & opcode[1] & ~opcode[0];
@@ -184,7 +186,7 @@ module processor(
 	 assign bex_should_jump = bex_type & alu_ne;
 	 
 	 /*** RegFile Operation ***/
-	 assign ctrl_readRegA = (ssta_type | spos_type | sscr_type) ? rd : (bex_type ? 5'd30 : ((bne_type | blt_type | jr_type) ? rd : rs));
+	 assign ctrl_readRegA = (ssta_type | spos_type | sscr_type | ssnd_type) ? rd : (bex_type ? 5'd30 : ((bne_type | blt_type | jr_type) ? rd : rs));
 	 assign ctrl_readRegB = (bne_type | blt_type) ? rs : (sw_type ? rd : (arith_r_type ? r_rt : r_rt));	// If SW, read value of rd, otherwise for later
 	 assign ctrl_writeReg = (pobx1_type | pobx2_type | pobx3_type | poby1_type | poby2_type | poby3_type) ? rd : (pkey_type ? rd : (jal_type ? 5'd31 : (lw_type ? rd : ((alu_should_ovf | setx_type) ? 5'd30 : rd))));	// If JAL, r31; If LW, write to rd
 	 assign data_writeReg = pobx1_type ? pipe_1_x : poby1_type ? pipe_1_y : pobx2_type ? pipe_2_x : poby2_type ? pipe_2_y : pobx3_type ? pipe_3_x : poby3_type ? pipe_3_y : (pkey_type ? {30'd0, space_state} : (jal_type ? {20'd0, pc_next} : (lw_type ? q_dmem : (alu_should_ovf ? alu_ovf_code : (setx_type ? {5'd0, ji_t} : alu_result)))));	// If JAL, pc + 1; If LW, read from DMEM
@@ -211,5 +213,6 @@ module processor(
 	 assign w_game_state = ssta_type;
 	 assign w_bird_y = spos_type;
 	 assign w_score = sscr_type;
+	 assign w_sound = ssnd_type;
 	 assign val_out = data_readRegA;
 endmodule
