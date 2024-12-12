@@ -45,6 +45,7 @@ module se_jump(
 				current_note_index <= current_note_index + 1;
 				if (current_note_index == NOTES) begin
 					playing <= 0;
+					current_note_index <= 0;
 				end
 			end
 		end
